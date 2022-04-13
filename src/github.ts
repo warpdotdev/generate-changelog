@@ -1,5 +1,6 @@
 import {graphql} from '@octokit/graphql'
 import shell from 'shelljs'
+import * as core from '@actions/core'
 
 // Regexes to find the changelog contents within a PR.
 const FIXES_REGEX = /^CHANGELOG-FIXES:(.*)/gm
@@ -87,7 +88,7 @@ async function fetchPullRequestBodyFromCommits(
   commits: string[],
   graphqlWithAuth: Function
 ): Promise<string[]> {
-  console.log(`generated commits ${commits}`)
+  core.info(`generated commits ${commits}`)
 
   let commitsSubQuery = ''
   for (const oid of commits) {
@@ -117,7 +118,7 @@ async function fetchPullRequestBodyFromCommits(
 `)
 
   const commitsInfo: string[] = []
-  for (const oid of commits) {)
+  for (const oid of commits) {
     const commitResponse = response.repository[`commit_${oid}`]
     if (commitResponse.associatedPullRequests.nodes.length > 0) {
       commitsInfo.push(commitResponse.associatedPullRequests.nodes[0].body)
