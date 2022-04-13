@@ -2,9 +2,19 @@ name: 'Generate Warp Changelog'
 description: 'Generates a Warp changelog for a given version and relase channel'
 author: 'warpdotdev'
 inputs:
-  github_auth_token: # change this
+  github_auth_token:
     required: true
-    description: 'input description here'  
+    description: 'The auth token to authenticate requests to the GitHub API'  
+  version:
+    required: true
+    description: 'The current version of the app the changelog should be generated for'
+  channel:
+    required: true
+    description: 'The channel the changelog should be generated for. One of stable/beta/dev.'
+outputs:
+  changelog:
+     description: 'The generated changelog, as JSON'
+
 runs:
   using: 'node16'
   main: 'dist/index.js'

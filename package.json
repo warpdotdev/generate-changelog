@@ -26,6 +26,7 @@
   "license": "MIT",
   "dependencies": {
     "@actions/core": "^1.6.0",
+    "@types/shelljs": "^0.8.11",
     "https": "^1.0.0",
     "octokit": "^1.7.1",
     "shelljs": "^0.8.5",
