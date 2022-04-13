@@ -65,7 +65,7 @@ export async function generateChangelog(
     // Find all the commits between the current release and the last release.
     const commits = shell
       .exec(
-        `git --no-pager -C ~/Desktop/warp/warp log ${lastReleaseVersion}..${currentVersion} --pretty=format:""%H""`,
+        `git --no-pager log ${lastReleaseVersion}..${currentVersion} --pretty=format:""%H""`,
         {silent: true}
       )
       .stdout.trim()
