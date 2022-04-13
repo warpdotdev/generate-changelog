@@ -8,6 +8,7 @@ async function run(): Promise<void> {
     })
     const current_version: string = core.getInput('version', {required: true})
     const channel: string = core.getInput('channel', {required: true})
+    core.info(`Debug message`)
 
     const changelog = await generateChangelog(
       github_auth_token,
