@@ -6,6 +6,25 @@ require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -22,6 +41,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.generateChangelog = void 0;
 const graphql_1 = __nccwpck_require__(8467);
 const shelljs_1 = __importDefault(__nccwpck_require__(3516));
+const core = __importStar(__nccwpck_require__(2186));
 // Regexes to find the changelog contents within a PR.
 const FIXES_REGEX = /^CHANGELOG-FIXES:(.*)/gm;
 const ADDS_REGEX = /^CHANGELOG-ADDS:(.*)/gm;
@@ -55,7 +75,7 @@ function generateChangelog(githubAuthToken, currentVersion, channel) {
         if (lastReleaseVersion) {
             // Find all the commits between the current release and the last release.
             const commits = shelljs_1.default
-                .exec(`git --no-pager -C ~/Desktop/warp/warp log ${lastReleaseVersion}..${currentVersion} --pretty=format:""%H""`, { silent: true })
+                .exec(`git --no-pager log ${lastReleaseVersion}..${currentVersion} --pretty=format:""%H""`, { silent: true })
                 .stdout.trim()
                 .split('\n');
             const pullRequestMetadata = yield fetchPullRequestBodyFromCommits(commits, graphqlWithAuth);
@@ -70,6 +90,7 @@ exports.generateChangelog = generateChangelog;
 // Fetches PR body text from a series of commits.
 function fetchPullRequestBodyFromCommits(commits, graphqlWithAuth) {
     return __awaiter(this, void 0, void 0, function* () {
+        core.info(`generated commits ${commits}`);
         let commitsSubQuery = '';
         for (const oid of commits) {
             commitsSubQuery += `
