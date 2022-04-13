@@ -1,14 +1,11 @@
 import * as core from '@actions/core'
-import {wait} from './wait'
+import {generateChangelog} from './github'
 
 async function run(): Promise<void> {
   try {
-    const ms: string = core.getInput('milliseconds')
-    core.debug(`Waiting ${ms} milliseconds ...`) // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
+    const github_auth_token: string = core.getInput('github_auth_token')
 
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
+    await generateChangelog(github_auth_token, "sdf")
 
     core.setOutput('time', new Date().toTimeString())
   } catch (error) {

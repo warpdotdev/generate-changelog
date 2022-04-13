@@ -25,7 +25,11 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^1.6.0"
+    "@actions/core": "^1.6.0",
+    "https": "^1.0.0",
+    "octokit": "^1.7.1",
+    "shelljs": "^0.8.5",
+    "util": "^0.12.4"
   },
   "devDependencies": {
     "@types/node": "^16.10.5",
