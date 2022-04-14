@@ -69,6 +69,7 @@ export async function generateChangelog(
       {silent: true}
     )
     core.info(`Executed git log with output ${command}`)
+    core.info(`Executed git log with output ${command.stderr}`)
     const commits = command.stdout.trim().split('\n')
     const pullRequestMetadata = await fetchPullRequestBodyFromCommits(
       commits,
