@@ -74,10 +74,9 @@ function generateChangelog(githubAuthToken, currentVersion, channel) {
         }
         if (lastReleaseVersion) {
             // Find all the commits between the current release and the last release.
-            const commits = shelljs_1.default
-                .exec(`git --no-pager log ${lastReleaseVersion}..${currentVersion} --pretty=format:""%H""`, { silent: true })
-                .stdout.trim()
-                .split('\n');
+            const command = shelljs_1.default.exec(`git --no-pager log ${lastReleaseVersion}..${currentVersion} --pretty=format:""%H""`, { silent: true });
+            core.info(`Executed git log with output ${command}`);
+            const commits = command.stdout.trim().split('\n');
             const pullRequestMetadata = yield fetchPullRequestBodyFromCommits(commits, graphqlWithAuth);
             return parseChangelogFromPrDescriptions(pullRequestMetadata);
         }
@@ -227,6 +226,7 @@ function run() {
             });
             const current_version = core.getInput('version', { required: true });
             const channel = core.getInput('channel', { required: true });
+            core.info(`Debug message`);
             const changelog = yield (0, github_1.generateChangelog)(github_auth_token, current_version, channel);
             core.setOutput('changelog', JSON.stringify(changelog));
         }
