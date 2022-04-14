@@ -64,13 +64,12 @@ export async function generateChangelog(
 
   if (lastReleaseVersion) {
     // Find all the commits between the current release and the last release.
-    const commits = shell
-      .exec(
-        `git --no-pager log ${lastReleaseVersion}..${currentVersion} --pretty=format:""%H""`,
-        {silent: true}
-      )
-      .stdout.trim()
-      .split('\n')
+    const command = shell.exec(
+      `git --no-pager log ${lastReleaseVersion}..${currentVersion} --pretty=format:""%H""`,
+      {silent: true}
+    )
+    core.info(`Executed git log with output ${command}`)
+    const commits = command.stdout.trim().split('\n')
     const pullRequestMetadata = await fetchPullRequestBodyFromCommits(
       commits,
       graphqlWithAuth
