@@ -74,7 +74,8 @@ function generateChangelog(githubAuthToken, currentVersion, channel) {
         }
         if (lastReleaseVersion) {
             // Find all the commits between the current release and the last release.
-            const command = shelljs_1.default.exec(`git --no-pager log ${lastReleaseVersion}..${currentVersion} --pretty=format:""%H""`, { silent: true });
+            core.info(`Comparing ${lastReleaseVersion} to ${currentVersion}`);
+            const command = shelljs_1.default.exec(`git --no-pager log ${lastReleaseVersion}...${currentVersion} --pretty=format:'"%H"'`, { silent: true });
             core.info(`Executed git log with output ${command}`);
             core.info(`Executed git log with output ${command.stderr}`);
             const commits = command.stdout.trim().split('\n');

@@ -64,8 +64,9 @@ export async function generateChangelog(
 
   if (lastReleaseVersion) {
     // Find all the commits between the current release and the last release.
+    core.info(`Comparing ${lastReleaseVersion} to ${currentVersion}`)
     const command = shell.exec(
-      `git --no-pager log ${lastReleaseVersion}..${currentVersion} --pretty=format:""%H""`,
+      `git --no-pager log ${lastReleaseVersion}...${currentVersion} --pretty=format:'"%H"'`,
       {silent: true}
     )
     core.info(`Executed git log with output ${command}`)
