@@ -74,9 +74,6 @@ function generateChangelog(githubAuthToken, currentVersion, channel) {
         }
         if (lastReleaseVersion) {
             // Find all the commits between the current release and the last release.
-            const gitTags = shelljs_1.default.exec(`git tag`, { silent: true });
-            core.info(`Executed git tag with output ${gitTags.stdout}`);
-            core.info(`Comparing ${lastReleaseVersion} to ${currentVersion}`);
             const command = shelljs_1.default.exec(`git --no-pager log ${lastReleaseVersion}...${currentVersion} --pretty=format:'"%H"'`, { silent: true });
             core.info(`Executed git log with output ${command}`);
             core.info(`Executed git log with output ${command.stderr}`);
@@ -112,6 +109,7 @@ function fetchPullRequestBodyFromCommits(commits, graphqlWithAuth) {
         }
     `;
         }
+        core.info(`Final subqery is ${commitsSubQuery}`);
         const response = yield graphqlWithAuth(`
   {
     repository(owner: "warpdotdev", name: "warp-internal") {
@@ -119,6 +117,7 @@ function fetchPullRequestBodyFromCommits(commits, graphqlWithAuth) {
     }
   }
 `);
+        core.info(`response is ${response}`);
         const commitsInfo = [];
         for (const oid of commits) {
             const commitResponse = response.repository[`commit_${oid}`];

@@ -64,10 +64,6 @@ export async function generateChangelog(
 
   if (lastReleaseVersion) {
     // Find all the commits between the current release and the last release.
-    const gitTags = shell.exec(`git tag`, {silent: true})
-    core.info(`Executed git tag with output ${gitTags.stdout}`)
-
-    core.info(`Comparing ${lastReleaseVersion} to ${currentVersion}`)
     const command = shell.exec(
       `git --no-pager log ${lastReleaseVersion}...${currentVersion} --pretty=format:'"%H"'`,
       {silent: true}
@@ -114,6 +110,8 @@ async function fetchPullRequestBodyFromCommits(
     `
   }
 
+  core.info(`Final subqery is ${commitsSubQuery}`)
+
   const response = await graphqlWithAuth(`
   {
     repository(owner: "warpdotdev", name: "warp-internal") {
@@ -121,6 +119,8 @@ async function fetchPullRequestBodyFromCommits(
     }
   }
 `)
+
+  core.info(`response is ${response}`)
 
   const commitsInfo: string[] = []
   for (const oid of commits) {
