@@ -64,12 +64,16 @@ export async function generateChangelog(
 
   if (lastReleaseVersion) {
     // Find all the commits between the current release and the last release.
+    const gitTags = shell.exec(`git tag`, {silent: true})
+    core.info(`Executed git tag with output ${gitTags.stdout}`)
+
     core.info(`Comparing ${lastReleaseVersion} to ${currentVersion}`)
     const command = shell.exec(
       `git --no-pager log ${lastReleaseVersion}...${currentVersion} --pretty=format:'"%H"'`,
       {silent: true}
     )
     core.info(`Executed git log with output ${command}`)
+
     core.info(`Executed git log with output ${command.stderr}`)
     const commits = command.stdout.trim().split('\n')
     const pullRequestMetadata = await fetchPullRequestBodyFromCommits(
