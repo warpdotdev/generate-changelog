@@ -176,8 +176,8 @@ function parseChangelogFromPrDescriptions(prDescriptions) {
         }
     }
     return {
-        added: changelog_new || undefined,
-        fixed: changelog_fixed || undefined
+        added: changelog_new.length > 0 ? changelog_new : undefined,
+        fixed: changelog_fixed.length > 0 ? changelog_fixed : undefined
     };
 }
 
