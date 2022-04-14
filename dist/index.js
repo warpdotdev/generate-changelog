@@ -59,16 +59,15 @@ function generateChangelog(githubAuthToken, currentVersion, channel) {
         let lastReleaseVersion;
         for (const release of releases) {
             // Only consider releases of the same type as the current channel.
-            if (release.name.startsWith(channel)) {
-                if (!release.version.startsWith(currentVersion.substring(0, currentVersion.length - 1 - 2))) {
-                    // Check for a release where `release.version` is less then `currentVersion`, which means `localCompare` would return `1`.
-                    if (currentVersion.localeCompare(release.version, undefined, {
-                        numeric: true,
-                        sensitivity: 'base'
-                    }) === 1) {
-                        lastReleaseVersion = release.version;
-                        break;
-                    }
+            if (release.name.startsWith(channel) &&
+                !release.version.startsWith(currentVersion.substring(0, currentVersion.length - 1 - 2))) {
+                // Check for a release where `release.version` is less then `currentVersion`, which means `localCompare` would return `1`.
+                if (currentVersion.localeCompare(release.version, undefined, {
+                    numeric: true,
+                    sensitivity: 'base'
+                }) === 1) {
+                    lastReleaseVersion = release.version;
+                    break;
                 }
             }
         }
@@ -177,8 +176,8 @@ function parseChangelogFromPrDescriptions(prDescriptions) {
         }
     }
     return {
-        added: changelog_new,
-        fixed: changelog_fixed
+        added: changelog_new || undefined,
+        fixed: changelog_fixed || undefined
     };
 }
 
@@ -231,7 +230,7 @@ function run() {
             const channel = core.getInput('channel', { required: true });
             core.info(`Debug message`);
             const changelog = yield (0, github_1.generateChangelog)(github_auth_token, current_version, channel);
-            core.setOutput('changelog', JSON.stringify(changelog));
+            core.setOutput('changelog', changelog);
         }
         catch (error) {
             if (error instanceof Error)

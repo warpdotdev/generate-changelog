@@ -16,7 +16,7 @@ async function run(): Promise<void> {
       channel
     )
 
-    core.setOutput('changelog', JSON.stringify(changelog))
+    core.setOutput('changelog', changelog)
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }

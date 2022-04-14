@@ -7,8 +7,8 @@ const FIXES_REGEX = /^CHANGELOG-FIXES:(.*)/gm
 const ADDS_REGEX = /^CHANGELOG-ADDS:(.*)/gm
 
 export interface Changelog {
-  added: string[]
-  fixed: string[]
+  added: string[] | undefined
+  fixed: string[] | undefined
 }
 
 interface ReleaseInfo {
@@ -42,22 +42,21 @@ export async function generateChangelog(
   let lastReleaseVersion
   for (const release of releases) {
     // Only consider releases of the same type as the current channel.
-    if (release.name.startsWith(channel)) {
+    if (
+      release.name.startsWith(channel) &&
+      !release.version.startsWith(
+        currentVersion.substring(0, currentVersion.length - 1 - 2)
+      )
+    ) {
+      // Check for a release where `release.version` is less then `currentVersion`, which means `localCompare` would return `1`.
       if (
-        !release.version.startsWith(
-          currentVersion.substring(0, currentVersion.length - 1 - 2)
-        )
+        currentVersion.localeCompare(release.version, undefined, {
+          numeric: true,
+          sensitivity: 'base'
+        }) === 1
       ) {
-        // Check for a release where `release.version` is less then `currentVersion`, which means `localCompare` would return `1`.
-        if (
-          currentVersion.localeCompare(release.version, undefined, {
-            numeric: true,
-            sensitivity: 'base'
-          }) === 1
-        ) {
-          lastReleaseVersion = release.version
-          break
-        }
+        lastReleaseVersion = release.version
+        break
       }
     }
   }
@@ -187,7 +186,7 @@ function parseChangelogFromPrDescriptions(prDescriptions: string[]): Changelog {
   }
 
   return {
-    added: changelog_new,
-    fixed: changelog_fixed
+    added: changelog_new || undefined,
+    fixed: changelog_fixed || undefined
   }
 }
