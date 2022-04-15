@@ -61,9 +61,12 @@ export async function generateChangelog(
   }
 
   if (lastReleaseVersion) {
-    // Find all the commits between the current release and the last release.
+    // Find all the commits in the branch for the current release that aren't in the branch for the last release.
+    const currentBranch = branchFromVersion(currentVersion, channel)
+    const previousBranch = branchFromVersion(lastReleaseVersion, channel)
+
     const command = shell.exec(
-      `git --no-pager log ${lastReleaseVersion}...${currentVersion} --pretty=format:%H`,
+      `git --no-pager log  ^${previousBranch} ${currentBranch} --pretty=format:%H`,
       {silent: true}
     )
 
@@ -78,6 +81,13 @@ export async function generateChangelog(
       Error('Unable to find last release prior to the given release')
     )
   }
+}
+
+function branchFromVersion(version: string, channel: string): string {
+  return `origin/${channel}_release/${version.substring(
+    0,
+    version.indexOf('_')
+  )}`
 }
 
 // Fetches PR body text from a series of commits.
