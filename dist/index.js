@@ -24,7 +24,7 @@ const graphql_1 = __nccwpck_require__(8467);
 const shelljs_1 = __importDefault(__nccwpck_require__(3516));
 // Regexes to find the changelog contents within a PR.
 const FIXES_REGEX = /^CHANGELOG-FIXES:(.*)/gm;
-const ADDS_REGEX = /^CHANGELOG-ADDS:(.*)/gm;
+const NEW_REGEX = /^CHANGELOG-NEW:(.*)/gm;
 // Generates a changelog by parsing PRs that were newly merged into the currentVersion.
 function generateChangelog(githubAuthToken, currentVersion, channel) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -42,7 +42,8 @@ function generateChangelog(githubAuthToken, currentVersion, channel) {
             if (release.name.toLowerCase().startsWith(channel) &&
                 !release.version.startsWith(currentVersion.substring(0, currentVersion.length - 1 - 2))) {
                 // Check for a release where `release.version` is less then `currentVersion`, which means `localCompare` would return `1`.
-                if (currentVersion.localeCompare(release.version, undefined, {
+                // This is by no means a perfect check, but should suffice because each version is of the exact same format and length.
+                if (currentVersion.localeCompare(release.version, undefined /* locales */, {
                     numeric: true,
                     sensitivity: 'base'
                 }) === 1) {
@@ -55,6 +56,7 @@ function generateChangelog(githubAuthToken, currentVersion, channel) {
             // Find all the commits in the branch for the current release that aren't in the branch for the last release.
             const currentBranch = branchFromVersion(currentVersion, channel);
             const previousBranch = branchFromVersion(lastReleaseVersion, channel);
+            // Find all the commits that are in `currentBranch` but not `previousBranch`.
             const command = shelljs_1.default.exec(`git --no-pager log  ^${previousBranch} ${currentBranch} --pretty=format:%H`, { silent: true });
             const commits = command.stdout.trim().split('\n');
             const pullRequestMetadata = yield fetchPullRequestBodyFromCommits(commits, graphqlWithAuth);
@@ -66,6 +68,8 @@ function generateChangelog(githubAuthToken, currentVersion, channel) {
     });
 }
 exports.generateChangelog = generateChangelog;
+// Returns the release branch from a version tag. A version like `v0.2022.04.11.09.09.stable_01` would
+// be converted to `stable_release/v0.2022.04.11.09.09.stable`.
 function branchFromVersion(version, channel) {
     return `origin/${channel}_release/${version.substring(0, version.indexOf('_'))}`;
 }
@@ -147,7 +151,7 @@ function parseChangelogFromPrDescriptions(prDescriptions) {
                 changelog_fixed.push(fixMatch[1].trim());
             }
         }
-        const addMatches = prDescription.matchAll(ADDS_REGEX);
+        const addMatches = prDescription.matchAll(NEW_REGEX);
         if (addMatches) {
             const addMatchesArray = [...addMatches];
             for (const addMatch of addMatchesArray) {
