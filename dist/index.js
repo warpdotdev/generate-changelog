@@ -34,8 +34,8 @@ function generateChangelog(githubAuthToken, currentVersion, channel) {
             }
         });
         const releases = yield getReleases(graphqlWithAuth);
-        // Find the most recent release prior to this one, ignoring any releases that were the same version from a
-        //  prior cherrypick (e.g. v0.2022.01.01.stable_00 is still part of the same release as v0.2022.01.01.stable_01).
+        // Find the most recent release prior to this one, ignoring any releases that were from the same version from a
+        // prior cherrypick (e.g. v0.2022.01.01.stable_00 is still part of the same release as v0.2022.01.01.stable_01).
         let lastReleaseVersion;
         for (const release of releases) {
             // Only consider releases of the same type as the current channel.
