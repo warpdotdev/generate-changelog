@@ -3,7 +3,7 @@ import shell from 'shelljs'
 
 // Regexes to find the changelog contents within a PR.
 const FIXES_REGEX = /^CHANGELOG-FIXES:(.*)/gm
-const ADDS_REGEX = /^CHANGELOG-ADDS:(.*)/gm
+const NEW_REGEX = /^CHANGELOG-NEW:(.*)/gm
 
 export interface Changelog {
   added: string[] | undefined
@@ -48,8 +48,9 @@ export async function generateChangelog(
       )
     ) {
       // Check for a release where `release.version` is less then `currentVersion`, which means `localCompare` would return `1`.
+      // This is by no means a perfect check, but should suffice because each version is of the exact same format and length.
       if (
-        currentVersion.localeCompare(release.version, undefined, {
+        currentVersion.localeCompare(release.version, undefined /* locales */, {
           numeric: true,
           sensitivity: 'base'
         }) === 1
@@ -65,6 +66,7 @@ export async function generateChangelog(
     const currentBranch = branchFromVersion(currentVersion, channel)
     const previousBranch = branchFromVersion(lastReleaseVersion, channel)
 
+    // Find all the commits that are in `currentBranch` but not `previousBranch`.
     const command = shell.exec(
       `git --no-pager log  ^${previousBranch} ${currentBranch} --pretty=format:%H`,
       {silent: true}
@@ -83,6 +85,8 @@ export async function generateChangelog(
   }
 }
 
+// Returns the release branch from a version tag. A version like `v0.2022.04.11.09.09.stable_01` would
+// be converted to `stable_release/v0.2022.04.11.09.09.stable`.
 function branchFromVersion(version: string, channel: string): string {
   return `origin/${channel}_release/${version.substring(
     0,
@@ -177,7 +181,7 @@ function parseChangelogFromPrDescriptions(prDescriptions: string[]): Changelog {
       }
     }
 
-    const addMatches = prDescription.matchAll(ADDS_REGEX)
+    const addMatches = prDescription.matchAll(NEW_REGEX)
     if (addMatches) {
       const addMatchesArray = [...addMatches]
       for (const addMatch of addMatchesArray) {
