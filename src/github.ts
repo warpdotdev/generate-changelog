@@ -1,6 +1,5 @@
 import {graphql} from '@octokit/graphql'
 import shell from 'shelljs'
-import * as core from '@actions/core'
 
 // Regexes to find the changelog contents within a PR.
 const FIXES_REGEX = /^CHANGELOG-FIXES:(.*)/gm
@@ -43,7 +42,7 @@ export async function generateChangelog(
   for (const release of releases) {
     // Only consider releases of the same type as the current channel.
     if (
-      release.name.startsWith(channel) &&
+      release.name.toLowerCase().startsWith(channel) &&
       !release.version.startsWith(
         currentVersion.substring(0, currentVersion.length - 1 - 2)
       )
@@ -67,9 +66,7 @@ export async function generateChangelog(
       `git --no-pager log ${lastReleaseVersion}...${currentVersion} --pretty=format:%H`,
       {silent: true}
     )
-    core.info(`Executed git log with output ${command}`)
 
-    core.info(`Executed git log with output ${command.stderr}`)
     const commits = command.stdout.trim().split('\n')
     const pullRequestMetadata = await fetchPullRequestBodyFromCommits(
       commits,
@@ -88,8 +85,6 @@ async function fetchPullRequestBodyFromCommits(
   commits: string[],
   graphqlWithAuth: Function
 ): Promise<string[]> {
-  core.info(`generated commits ${commits}`)
-
   let commitsSubQuery = ''
   for (const oid of commits) {
     commitsSubQuery += `
@@ -109,8 +104,6 @@ async function fetchPullRequestBodyFromCommits(
     `
   }
 
-  core.info(`Final subqery is ${commitsSubQuery}`)
-
   const response = await graphqlWithAuth(`
   {
     repository(owner: "warpdotdev", name: "warp-internal") {
@@ -118,8 +111,6 @@ async function fetchPullRequestBodyFromCommits(
     }
   }
 `)
-
-  core.info(`response is ${response}`)
 
   const commitsInfo: string[] = []
   for (const oid of commits) {
