@@ -1,7 +1,7 @@
 require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 5928:
+/***/ 4396:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -52,8 +52,10 @@ function generateChangelog(githubAuthToken, currentVersion, channel) {
             }
         }
         if (lastReleaseVersion) {
-            // Find all the commits between the current release and the last release.
-            const command = shelljs_1.default.exec(`git --no-pager log ${lastReleaseVersion}...${currentVersion} --pretty=format:%H`, { silent: true });
+            // Find all the commits in the branch for the current release that aren't in the branch for the last release.
+            const currentBranch = branchFromVersion(currentVersion, channel);
+            const previousBranch = branchFromVersion(lastReleaseVersion, channel);
+            const command = shelljs_1.default.exec(`git --no-pager log  ^${previousBranch} ${currentBranch} --pretty=format:%H`, { silent: true });
             const commits = command.stdout.trim().split('\n');
             const pullRequestMetadata = yield fetchPullRequestBodyFromCommits(commits, graphqlWithAuth);
             return parseChangelogFromPrDescriptions(pullRequestMetadata);
@@ -64,6 +66,9 @@ function generateChangelog(githubAuthToken, currentVersion, channel) {
     });
 }
 exports.generateChangelog = generateChangelog;
+function branchFromVersion(version, channel) {
+    return `origin/${channel}_release/${version.substring(0, version.indexOf('_'))}`;
+}
 // Fetches PR body text from a series of commits.
 function fetchPullRequestBodyFromCommits(commits, graphqlWithAuth) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -194,7 +199,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
-const github_1 = __nccwpck_require__(5928);
+const generate_changelog_1 = __nccwpck_require__(4396);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -203,7 +208,7 @@ function run() {
             });
             const current_version = core.getInput('version', { required: true });
             const channel = core.getInput('channel', { required: true });
-            const changelog = yield (0, github_1.generateChangelog)(github_auth_token, current_version, channel);
+            const changelog = yield (0, generate_changelog_1.generateChangelog)(github_auth_token, current_version, channel);
             core.setOutput('changelog', changelog);
         }
         catch (error) {

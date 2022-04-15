@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import {generateChangelog} from './github'
+import {generateChangelog} from './generate-changelog'
 
 async function run(): Promise<void> {
   try {
