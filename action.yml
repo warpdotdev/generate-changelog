@@ -1,5 +1,5 @@
 name: 'Generate Warp Changelog'
-description: 'Generates a Warp changelog for a given version and relase channel'
+description: 'Generates a Warp changelog for a given version and release channel'
 author: 'warpdotdev'
 inputs:
   github_auth_token:
