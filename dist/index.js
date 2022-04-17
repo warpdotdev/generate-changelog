@@ -41,33 +41,34 @@ function generateChangelog(githubAuthToken, currentVersion, channel) {
             // Only consider releases of the same type as the current channel.
             if (release.name.toLowerCase().startsWith(channel) &&
                 !release.version.startsWith(currentVersion.substring(0, currentVersion.length - 1 - 2))) {
-                // Check for a release where `release.version` is less then `currentVersion`, which means `localCompare` would return `1`.
-                // This is by no means a perfect check, but should suffice because each version is of the exact same format and length.
-                if (currentVersion.localeCompare(release.version, undefined /* locales */, {
-                    numeric: true,
-                    sensitivity: 'base'
-                }) === 1) {
+                if (isVersionGreater(currentVersion, release.version)) {
                     lastReleaseVersion = release.version;
                     break;
                 }
             }
         }
-        if (lastReleaseVersion) {
-            // Find all the commits in the branch for the current release that aren't in the branch for the last release.
-            const currentBranch = branchFromVersion(currentVersion, channel);
-            const previousBranch = branchFromVersion(lastReleaseVersion, channel);
-            // Find all the commits that are in `currentBranch` but not `previousBranch`.
-            const command = shelljs_1.default.exec(`git --no-pager log  ^${previousBranch} ${currentBranch} --pretty=format:%H`, { silent: true });
-            const commits = command.stdout.trim().split('\n');
-            const pullRequestMetadata = yield fetchPullRequestBodyFromCommits(commits, graphqlWithAuth);
-            return parseChangelogFromPrDescriptions(pullRequestMetadata);
+        if (!lastReleaseVersion) {
+            throw new Error('Unable to find last release prior to the given release');
         }
-        else {
-            return Promise.reject(Error('Unable to find last release prior to the given release'));
-        }
+        // Find all the commits in the branch for the current release that aren't in the branch for the last release.
+        const currentBranch = branchFromVersion(currentVersion, channel);
+        const previousBranch = branchFromVersion(lastReleaseVersion, channel);
+        // Find all the commits that are in `currentBranch` but not `previousBranch`.
+        const command = shelljs_1.default.exec(`git --no-pager log  ^${previousBranch} ${currentBranch} --pretty=format:%H`, { silent: true });
+        const commits = command.stdout.trim().split('\n');
+        const pullRequestMetadata = yield fetchPullRequestBodyFromCommits(commits, graphqlWithAuth);
+        return parseChangelogFromPrDescriptions(pullRequestMetadata);
     });
 }
 exports.generateChangelog = generateChangelog;
+// Check for a release where `currentVersion` is greater than `release.version`, which means `localCompare` would return `1`.
+// This is by no means a perfect check, but should suffice because each version is of the exact same format and length.
+function isVersionGreater(currentVersion, releaseVersion) {
+    return (currentVersion.localeCompare(releaseVersion, undefined /* locales */, {
+        numeric: true,
+        sensitivity: 'base'
+    }) === 1);
+}
 // Returns the release branch from a version tag. A version like `v0.2022.04.11.09.09.stable_01` would
 // be converted to `stable_release/v0.2022.04.11.09.09.stable`.
 function branchFromVersion(version, channel) {
