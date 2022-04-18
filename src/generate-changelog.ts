@@ -1,3 +1,4 @@
+import * as core from '@actions/core'
 import {graphql} from '@octokit/graphql'
 import shell from 'shelljs'
 
@@ -48,6 +49,7 @@ export async function generateChangelog(
       )
     ) {
       if (isVersionGreater(currentVersion, release.version)) {
+        core.info(`Previous release is ${release.version}`)
         lastReleaseVersion = release.version
         break
       }
@@ -62,13 +64,25 @@ export async function generateChangelog(
   const currentBranch = branchFromVersion(currentVersion, channel)
   const previousBranch = branchFromVersion(lastReleaseVersion, channel)
 
+  core.info(`Comparing ${currentBranch} with ${previousBranch}`)
+
   // Find all the commits that are in `currentBranch` but not `previousBranch`.
   const command = shell.exec(
     `git --no-pager log  ^${previousBranch} ${currentBranch} --pretty=format:%H`,
     {silent: true}
   )
 
-  const commits = command.stdout.trim().split('\n')
+  const commits = command.stdout
+    .trim()
+    .split('\n')
+    .filter(s => s)
+  core.info(`Found commits ${commits}`)
+
+  // There were no differences in commits between the current version and the previous version.
+  if (commits.length === 0) {
+    return {added: undefined, fixed: undefined}
+  }
+
   const pullRequestMetadata = await fetchPullRequestBodyFromCommits(
     commits,
     graphqlWithAuth
@@ -107,20 +121,20 @@ async function fetchPullRequestBodyFromCommits(
   let commitsSubQuery = ''
   for (const oid of commits) {
     commitsSubQuery += `
-        commit_${oid}: object(oid: "${oid}") {
-          ... on Commit {
-            oid
-            author {
-              name
-            }
-            associatedPullRequests(first: 1) {
-              nodes {
-                  body
-              }
+      commit_${oid}: object(oid: "${oid}") {
+        ... on Commit {
+          oid
+          author {
+            name
+          }
+          associatedPullRequests(first: 1) {
+            nodes {
+                body
             }
           }
         }
-    `
+      }
+  `
   }
 
   const response = await graphqlWithAuth(`
