@@ -73,7 +73,7 @@ export async function generateChangelog(
   )
 
   const commits = command.stdout.trim().split('\n')
-  core.info(`Found commits ${command}`)
+  core.info(`Found commits ${commits}`)
 
   // There were no differences in commits between the current version and the previous version.
   if (commits.length === 0) {
