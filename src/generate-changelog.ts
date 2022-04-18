@@ -1,5 +1,5 @@
-import {graphql} from '@octokit/graphql'
 import * as core from '@actions/core'
+import {graphql} from '@octokit/graphql'
 import shell from 'shelljs'
 
 // Regexes to find the changelog contents within a PR.

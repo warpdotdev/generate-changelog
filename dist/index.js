@@ -39,8 +39,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.generateChangelog = void 0;
-const graphql_1 = __nccwpck_require__(8467);
 const core = __importStar(__nccwpck_require__(2186));
+const graphql_1 = __nccwpck_require__(8467);
 const shelljs_1 = __importDefault(__nccwpck_require__(3516));
 // Regexes to find the changelog contents within a PR.
 const FIXES_REGEX = /^CHANGELOG-FIXES:(.*)/gm;
