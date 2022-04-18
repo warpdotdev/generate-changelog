@@ -74,6 +74,12 @@ export async function generateChangelog(
 
   const commits = command.stdout.trim().split('\n')
   core.info(`Found commits ${command}`)
+
+  // There were no differences in commits between the current version and the previous version.
+  if (commits.length === 0) {
+    return {added: undefined, fixed: undefined}
+  }
+
   const pullRequestMetadata = await fetchPullRequestBodyFromCommits(
     commits,
     graphqlWithAuth

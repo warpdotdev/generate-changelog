@@ -79,6 +79,10 @@ function generateChangelog(githubAuthToken, currentVersion, channel) {
         const command = shelljs_1.default.exec(`git --no-pager log  ^${previousBranch} ${currentBranch} --pretty=format:%H`, { silent: true });
         const commits = command.stdout.trim().split('\n');
         core.info(`Found commits ${command}`);
+        // There were no differences in commits between the current version and the previous version.
+        if (commits.length === 0) {
+            return { added: undefined, fixed: undefined };
+        }
         const pullRequestMetadata = yield fetchPullRequestBodyFromCommits(commits, graphqlWithAuth);
         return parseChangelogFromPrDescriptions(pullRequestMetadata);
     });
