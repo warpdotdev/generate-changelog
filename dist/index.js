@@ -77,7 +77,10 @@ function generateChangelog(githubAuthToken, currentVersion, channel) {
         core.info(`Comparing ${currentBranch} with ${previousBranch}`);
         // Find all the commits that are in `currentBranch` but not `previousBranch`.
         const command = shelljs_1.default.exec(`git --no-pager log  ^${previousBranch} ${currentBranch} --pretty=format:%H`, { silent: true });
-        const commits = command.stdout.trim().split('\n');
+        const commits = command.stdout
+            .trim()
+            .split('\n')
+            .filter(s => s);
         core.info(`Found commits ${commits}`);
         // There were no differences in commits between the current version and the previous version.
         if (commits.length === 0) {
@@ -106,8 +109,7 @@ function fetchPullRequestBodyFromCommits(commits, graphqlWithAuth) {
     return __awaiter(this, void 0, void 0, function* () {
         let commitsSubQuery = '';
         for (const oid of commits) {
-            if (oid) {
-                commitsSubQuery += `
+            commitsSubQuery += `
       commit_${oid}: object(oid: "${oid}") {
         ... on Commit {
           oid
@@ -122,7 +124,6 @@ function fetchPullRequestBodyFromCommits(commits, graphqlWithAuth) {
         }
       }
   `;
-            }
         }
         const response = yield graphqlWithAuth(`
   {
