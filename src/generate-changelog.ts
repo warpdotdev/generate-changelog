@@ -73,6 +73,7 @@ export async function generateChangelog(
   )
 
   const stdout = command.stdout.trim()
+  core.info(`stdout of executing git log is ${stdout}`)
 
   const commits = stdout.split('\n').filter(s => s)
   core.info(`Found commits ${commits}`)
