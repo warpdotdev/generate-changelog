@@ -1,4 +1,5 @@
 import {graphql} from '@octokit/graphql'
+import * as core from '@actions/core'
 import shell from 'shelljs'
 
 // Regexes to find the changelog contents within a PR.
@@ -48,6 +49,7 @@ export async function generateChangelog(
       )
     ) {
       if (isVersionGreater(currentVersion, release.version)) {
+        core.info(`Previous release is ${release.version}`)
         lastReleaseVersion = release.version
         break
       }
@@ -62,6 +64,8 @@ export async function generateChangelog(
   const currentBranch = branchFromVersion(currentVersion, channel)
   const previousBranch = branchFromVersion(lastReleaseVersion, channel)
 
+  core.info(`Comparing ${currentBranch} with ${previousBranch}`)
+
   // Find all the commits that are in `currentBranch` but not `previousBranch`.
   const command = shell.exec(
     `git --no-pager log  ^${previousBranch} ${currentBranch} --pretty=format:%H`,
@@ -69,6 +73,7 @@ export async function generateChangelog(
   )
 
   const commits = command.stdout.trim().split('\n')
+  core.info(`Found commits ${command}`)
   const pullRequestMetadata = await fetchPullRequestBodyFromCommits(
     commits,
     graphqlWithAuth
