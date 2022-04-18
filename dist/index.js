@@ -106,21 +106,23 @@ function fetchPullRequestBodyFromCommits(commits, graphqlWithAuth) {
     return __awaiter(this, void 0, void 0, function* () {
         let commitsSubQuery = '';
         for (const oid of commits) {
-            commitsSubQuery += `
-        commit_${oid}: object(oid: "${oid}") {
-          ... on Commit {
-            oid
-            author {
-              name
-            }
-            associatedPullRequests(first: 1) {
-              nodes {
-                  body
-              }
+            if (oid) {
+                commitsSubQuery += `
+      commit_${oid}: object(oid: "${oid}") {
+        ... on Commit {
+          oid
+          author {
+            name
+          }
+          associatedPullRequests(first: 1) {
+            nodes {
+                body
             }
           }
         }
-    `;
+      }
+  `;
+            }
         }
         const response = yield graphqlWithAuth(`
   {
