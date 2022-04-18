@@ -117,21 +117,23 @@ async function fetchPullRequestBodyFromCommits(
 ): Promise<string[]> {
   let commitsSubQuery = ''
   for (const oid of commits) {
-    commitsSubQuery += `
-        commit_${oid}: object(oid: "${oid}") {
-          ... on Commit {
-            oid
-            author {
-              name
-            }
-            associatedPullRequests(first: 1) {
-              nodes {
-                  body
-              }
+    if (oid) {
+      commitsSubQuery += `
+      commit_${oid}: object(oid: "${oid}") {
+        ... on Commit {
+          oid
+          author {
+            name
+          }
+          associatedPullRequests(first: 1) {
+            nodes {
+                body
             }
           }
         }
-    `
+      }
+  `
+    }
   }
 
   const response = await graphqlWithAuth(`
