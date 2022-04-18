@@ -77,10 +77,8 @@ function generateChangelog(githubAuthToken, currentVersion, channel) {
         core.info(`Comparing ${currentBranch} with ${previousBranch}`);
         // Find all the commits that are in `currentBranch` but not `previousBranch`.
         const command = shelljs_1.default.exec(`git --no-pager log  ^${previousBranch} ${currentBranch} --pretty=format:%H`, { silent: true });
-        const commits = command.stdout
-            .trim()
-            .split('\n')
-            .filter(s => s);
+        const stdout = command.stdout.trim();
+        const commits = stdout.split('\n').filter(s => s);
         core.info(`Found commits ${commits}`);
         // There were no differences in commits between the current version and the previous version.
         if (commits.length === 0) {
