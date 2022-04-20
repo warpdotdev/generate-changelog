@@ -80,7 +80,7 @@ function generateChangelog(githubAuthToken, currentVersion, channel) {
         const commits = command.stdout
             .trim()
             .split('\n')
-            .filter(s => s.trim());
+            .filter(s => s);
         core.info(`Found commits ${commits}`);
         // There were no differences in commits between the current version and the previous version.
         if (commits.length === 0) {
@@ -179,8 +179,9 @@ function parseChangelogFromPrDescriptions(prDescriptions) {
         if (fixMatches) {
             const fixMatchesArray = [...fixMatches];
             for (const fixMatch of fixMatchesArray) {
-                if (fixMatch[1].trim()) {
-                    changelog_fixed.push(fixMatch[1].trim());
+                const fixMatchString = fixMatch[1].trim();
+                if (fixMatchString) {
+                    changelog_fixed.push(fixMatchString);
                 }
             }
         }
@@ -188,8 +189,9 @@ function parseChangelogFromPrDescriptions(prDescriptions) {
         if (addMatches) {
             const addMatchesArray = [...addMatches];
             for (const addMatch of addMatchesArray) {
-                if (addMatch[1].trim()) {
-                    changelog_new.push(addMatch[1].trim());
+                const addMatchString = addMatch[1].trim();
+                if (addMatchString) {
+                    changelog_new.push(addMatchString);
                 }
             }
         }
