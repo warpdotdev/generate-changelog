@@ -179,14 +179,18 @@ function parseChangelogFromPrDescriptions(prDescriptions) {
         if (fixMatches) {
             const fixMatchesArray = [...fixMatches];
             for (const fixMatch of fixMatchesArray) {
-                changelog_fixed.push(fixMatch[1].trim());
+                if (fixMatch[1].trim()) {
+                    changelog_fixed.push(fixMatch[1].trim());
+                }
             }
         }
         const addMatches = prDescription.matchAll(NEW_REGEX);
         if (addMatches) {
             const addMatchesArray = [...addMatches];
             for (const addMatch of addMatchesArray) {
-                changelog_new.push(addMatch[1].trim());
+                if (addMatch[1].trim()) {
+                    changelog_new.push(addMatch[1].trim());
+                }
             }
         }
     }
