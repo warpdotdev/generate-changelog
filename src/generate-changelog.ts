@@ -29,65 +29,15 @@ export async function generateChangelog(
   currentVersion: string,
   channel: string
 ): Promise<Changelog> {
-  const graphqlWithAuth = graphql.defaults({
-    headers: {
-      authorization: `token ${githubAuthToken}`
-    }
-  })
+  // const graphqlWithAuth = graphql.defaults({
+  //   headers: {
+  //     authorization: `token ${githubAuthToken}`
+  //   }
+  // })
 
-  const releases = await getReleases(graphqlWithAuth)
+  console.log(`${currentVersion}, ${channel}`)
 
-  // Find the most recent release prior to this one, ignoring any releases that were from the same version from a
-  // prior cherrypick (e.g. v0.2022.01.01.stable_00 is still part of the same release as v0.2022.01.01.stable_01).
-  let lastReleaseVersion
-  for (const release of releases) {
-    // Only consider releases of the same type as the current channel.
-    if (
-      release.name.toLowerCase().startsWith(channel) &&
-      !release.version.startsWith(
-        currentVersion.substring(0, currentVersion.length - 1 - 2)
-      )
-    ) {
-      if (isVersionGreater(currentVersion, release.version)) {
-        core.info(`Previous release is ${release.version}`)
-        lastReleaseVersion = release.version
-        break
-      }
-    }
-  }
-
-  if (!lastReleaseVersion) {
-    throw new Error('Unable to find last release prior to the given release')
-  }
-
-  // Find all the commits in the branch for the current release that aren't in the branch for the last release.
-  const currentBranch = branchFromVersion(currentVersion, channel)
-  const previousBranch = branchFromVersion(lastReleaseVersion, channel)
-
-  core.info(`Comparing ${currentBranch} with ${previousBranch}`)
-
-  // Find all the commits that are in `currentBranch` but not `previousBranch`.
-  const command = shell.exec(
-    `git --no-pager log  ^${previousBranch} ${currentBranch} --pretty=format:%H`,
-    {silent: true}
-  )
-
-  const commits = command.stdout
-    .trim()
-    .split('\n')
-    .filter(s => s)
-  core.info(`Found commits ${commits}`)
-
-  // There were no differences in commits between the current version and the previous version.
-  if (commits.length === 0) {
-    return {added: undefined, fixed: undefined}
-  }
-
-  const pullRequestMetadata = await fetchPullRequestBodyFromCommits(
-    commits,
-    graphqlWithAuth
-  )
-  return parseChangelogFromPrDescriptions(pullRequestMetadata)
+  return {added: undefined, fixed: undefined}
 }
 
 // Check for a release where `currentVersion` is greater than `release.version`, which means `localCompare` would return `1`.
