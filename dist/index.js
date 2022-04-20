@@ -80,7 +80,7 @@ function generateChangelog(githubAuthToken, currentVersion, channel) {
         const commits = command.stdout
             .trim()
             .split('\n')
-            .filter(s => s);
+            .filter(s => s.trim());
         core.info(`Found commits ${commits}`);
         // There were no differences in commits between the current version and the previous version.
         if (commits.length === 0) {
