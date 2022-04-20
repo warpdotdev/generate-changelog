@@ -196,8 +196,9 @@ function parseChangelogFromPrDescriptions(prDescriptions: string[]): Changelog {
     if (fixMatches) {
       const fixMatchesArray = [...fixMatches]
       for (const fixMatch of fixMatchesArray) {
-        if (fixMatch[1].trim()) {
-          changelog_fixed.push(fixMatch[1].trim())
+        const fixMatchString = fixMatch[1].trim()
+        if (fixMatchString) {
+          changelog_fixed.push(fixMatchString)
         }
       }
     }
@@ -206,8 +207,9 @@ function parseChangelogFromPrDescriptions(prDescriptions: string[]): Changelog {
     if (addMatches) {
       const addMatchesArray = [...addMatches]
       for (const addMatch of addMatchesArray) {
-        if (addMatch[1].trim()) {
-          changelog_new.push(addMatch[1].trim())
+        const addMatchString = addMatch[1].trim()
+        if (addMatchString) {
+          changelog_new.push(addMatchString)
         }
       }
     }
