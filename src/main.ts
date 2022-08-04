@@ -3,11 +3,9 @@ import {generateChangelog} from './generate-changelog'
 
 async function run(): Promise<void> {
   try {
-    const github_auth_token: string = core.getInput('github_auth_token', {
-      required: true
-    })
-    const current_version: string = core.getInput('version', {required: true})
-    const channel: string = core.getInput('channel', {required: true})
+    const github_auth_token: string = process.env.GH_TOKEN!
+    const current_version = process.env.CURRENT_VERSION!
+    const channel = 'stable'
 
     const changelog = await generateChangelog(
       github_auth_token,

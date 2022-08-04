@@ -68,7 +68,7 @@ export async function generateChangelog(
 
   // Find all the commits that are in `currentBranch` but not `previousBranch`.
   const command = shell.exec(
-    `git --no-pager log  ^${previousBranch} ${currentBranch} --pretty=format:%H`,
+    `git -C ~/Desktop/warp/warp/ --no-pager log  ^${previousBranch} ${currentBranch} --pretty=format:%H`,
     {silent: true}
   )
 
@@ -129,7 +129,7 @@ async function fetchPullRequestBodyFromCommits(
           }
           associatedPullRequests(first: 1) {
             nodes {
-                body
+                permalink
             }
           }
         }
@@ -149,9 +149,11 @@ async function fetchPullRequestBodyFromCommits(
   for (const oid of commits) {
     const commitResponse = response.repository[`commit_${oid}`]
     if (commitResponse.associatedPullRequests.nodes.length > 0) {
-      commitsInfo.push(commitResponse.associatedPullRequests.nodes[0].body)
+      commitsInfo.push(commitResponse.associatedPullRequests.nodes[0].permalink)
     }
   }
+
+  console.log(commitsInfo)
   return commitsInfo
 }
 
