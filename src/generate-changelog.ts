@@ -6,6 +6,12 @@ import shell from 'shelljs'
 const FIXES_REGEX = /^CHANGELOG-FIXES:(.*)/gm
 const NEW_REGEX = /^CHANGELOG-NEW:(.*)/gm
 
+// Template text for the changelog that should be ignored.
+const CHANGELOG_TEMPLATE_TEXT = [
+  'Insert a single changelog entry here',
+  'Insert ANOTHER changelog entry here'
+]
+
 export interface Changelog {
   added: string[] | undefined
   fixed: string[] | undefined
@@ -197,7 +203,10 @@ function parseChangelogFromPrDescriptions(prDescriptions: string[]): Changelog {
       const fixMatchesArray = [...fixMatches]
       for (const fixMatch of fixMatchesArray) {
         const fixMatchString = fixMatch[1].trim()
-        if (fixMatchString) {
+        if (
+          fixMatchString &&
+          !CHANGELOG_TEMPLATE_TEXT.includes(fixMatchString)
+        ) {
           changelog_fixed.push(fixMatchString)
         }
       }
@@ -208,7 +217,10 @@ function parseChangelogFromPrDescriptions(prDescriptions: string[]): Changelog {
       const addMatchesArray = [...addMatches]
       for (const addMatch of addMatchesArray) {
         const addMatchString = addMatch[1].trim()
-        if (addMatchString) {
+        if (
+          addMatchString &&
+          !CHANGELOG_TEMPLATE_TEXT.includes(addMatchString)
+        ) {
           changelog_new.push(addMatchString)
         }
       }
