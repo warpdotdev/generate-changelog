@@ -8,8 +8,8 @@ const NEW_REGEX = /^CHANGELOG-NEW:(.*)/gm
 
 // Template text for the changelog that should be ignored.
 const CHANGELOG_TEMPLATE_TEXT = [
-  'Insert a single changelog entry here',
-  'Insert ANOTHER changelog entry here'
+  '{{Insert a single changelog entry here}}',
+  '{{Insert ANOTHER changelog entry here}}'
 ]
 
 export interface Changelog {
