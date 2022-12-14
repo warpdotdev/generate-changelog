@@ -5,6 +5,7 @@ import shell from 'shelljs'
 // Regexes to find the changelog contents within a PR.
 const FIXES_REGEX = /^CHANGELOG-FIXES:(.*)/gm
 const NEW_REGEX = /^CHANGELOG-NEW:(.*)/gm
+const TEAMS_SPECIFIC_REGEX = /^TEAMS-SPECIFIC-CHANGES:(.*)/gm;
 
 // Template text for the changelog that should be ignored.
 const CHANGELOG_TEMPLATE_TEXT = [
@@ -15,6 +16,7 @@ const CHANGELOG_TEMPLATE_TEXT = [
 export interface Changelog {
   added: string[] | undefined
   fixed: string[] | undefined
+  teams: string[] | undefined
 }
 
 interface ReleaseInfo {
@@ -86,7 +88,7 @@ export async function generateChangelog(
 
   // There were no differences in commits between the current version and the previous version.
   if (commits.length === 0) {
-    return {added: undefined, fixed: undefined}
+    return {added: undefined, fixed: undefined, teams: undefined}
   }
 
   const pullRequestMetadata = await fetchPullRequestBodyFromCommits(
@@ -196,6 +198,7 @@ async function getReleases(graphqlWithAuth: Function): Promise<ReleaseInfo[]> {
 function parseChangelogFromPrDescriptions(prDescriptions: string[]): Changelog {
   const changelog_fixed: string[] = []
   const changelog_new: string[] = []
+  const teams_specific_changes: string[] = [];
 
   for (const prDescription of prDescriptions) {
     const fixMatches = prDescription.matchAll(FIXES_REGEX)
@@ -225,10 +228,23 @@ function parseChangelogFromPrDescriptions(prDescriptions: string[]): Changelog {
         }
       }
     }
+    
+    const teamsMatches = prDescription.matchAll(TEAMS_SPECIFIC_REGEX);
+        if (teamsMatches) {
+            const teamsMatchesArray = [...teamsMatches];
+            for (const teamsMatch of teamsMatchesArray) {
+                const teamsMatchString = teamsMatch[1].trim();
+                if (teamsMatchString &&
+                    !CHANGELOG_TEMPLATE_TEXT.includes(teamsMatchString)) {
+                      teams_specific_changes.push(teamsMatchString);
+                }
+            }
+        }
   }
 
   return {
     added: changelog_new.length > 0 ? changelog_new : undefined,
-    fixed: changelog_fixed.length > 0 ? changelog_fixed : undefined
+    fixed: changelog_fixed.length > 0 ? changelog_fixed : undefined,
+    teams: teams_specific_changes.length > 0 ? teams_specific_changes : undefined,
   }
 }
