@@ -8,11 +8,7 @@ const NEW_REGEX = /^CHANGELOG-NEW:(.*)/gm
 const TEAMS_SPECIFIC_REGEX = /^TEAMS-SPECIFIC-CHANGES:(.*)/gm;
 
 // Template text for the changelog that should be ignored.
-const CHANGELOG_TEMPLATE_TEXT = [
-  '{{Insert a single changelog entry here}}',
-  '{{Insert ANOTHER changelog entry here}}',
-  '{{Insert a single team-related changelog entry here}}',
-]
+const CHANGELOG_TEMPLATE_TEXT = /{{.*}}/gm
 
 export interface Changelog {
   added: string[] | undefined
@@ -209,7 +205,7 @@ function parseChangelogFromPrDescriptions(prDescriptions: string[]): Changelog {
         const fixMatchString = fixMatch[1].trim()
         if (
           fixMatchString &&
-          !CHANGELOG_TEMPLATE_TEXT.includes(fixMatchString)
+          !CHANGELOG_TEMPLATE_TEXT.test(fixMatchString)
         ) {
           changelog_fixed.push(fixMatchString)
         }
@@ -223,7 +219,7 @@ function parseChangelogFromPrDescriptions(prDescriptions: string[]): Changelog {
         const addMatchString = addMatch[1].trim()
         if (
           addMatchString &&
-          !CHANGELOG_TEMPLATE_TEXT.includes(addMatchString)
+          !CHANGELOG_TEMPLATE_TEXT.test(addMatchString)
         ) {
           changelog_new.push(addMatchString)
         }
@@ -236,7 +232,7 @@ function parseChangelogFromPrDescriptions(prDescriptions: string[]): Changelog {
             for (const teamsMatch of teamsMatchesArray) {
                 const teamsMatchString = teamsMatch[1].trim();
                 if (teamsMatchString &&
-                    !CHANGELOG_TEMPLATE_TEXT.includes(teamsMatchString)) {
+                    !CHANGELOG_TEMPLATE_TEXT.test(teamsMatchString)) {
                       teams_specific_changes.push(teamsMatchString);
                 }
             }

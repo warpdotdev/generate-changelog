@@ -47,11 +47,7 @@ const FIXES_REGEX = /^CHANGELOG-FIXES:(.*)/gm;
 const NEW_REGEX = /^CHANGELOG-NEW:(.*)/gm;
 const TEAMS_SPECIFIC_REGEX = /^TEAMS-SPECIFIC-CHANGES:(.*)/gm;
 // Template text for the changelog that should be ignored.
-const CHANGELOG_TEMPLATE_TEXT = [
-    '{{Insert a single changelog entry here}}',
-    '{{Insert ANOTHER changelog entry here}}',
-    '{{Insert a single team-related changelog entry here}}',
-];
+const CHANGELOG_TEMPLATE_TEXT = /{{.*}}/gm;
 // Generates a changelog by parsing PRs that were newly merged into the currentVersion.
 function generateChangelog(githubAuthToken, currentVersion, channel) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -189,7 +185,7 @@ function parseChangelogFromPrDescriptions(prDescriptions) {
             for (const fixMatch of fixMatchesArray) {
                 const fixMatchString = fixMatch[1].trim();
                 if (fixMatchString &&
-                    !CHANGELOG_TEMPLATE_TEXT.includes(fixMatchString)) {
+                    !CHANGELOG_TEMPLATE_TEXT.test(fixMatchString)) {
                     changelog_fixed.push(fixMatchString);
                 }
             }
@@ -200,7 +196,7 @@ function parseChangelogFromPrDescriptions(prDescriptions) {
             for (const addMatch of addMatchesArray) {
                 const addMatchString = addMatch[1].trim();
                 if (addMatchString &&
-                    !CHANGELOG_TEMPLATE_TEXT.includes(addMatchString)) {
+                    !CHANGELOG_TEMPLATE_TEXT.test(addMatchString)) {
                     changelog_new.push(addMatchString);
                 }
             }
@@ -211,7 +207,7 @@ function parseChangelogFromPrDescriptions(prDescriptions) {
             for (const teamsMatch of teamsMatchesArray) {
                 const teamsMatchString = teamsMatch[1].trim();
                 if (teamsMatchString &&
-                    !CHANGELOG_TEMPLATE_TEXT.includes(teamsMatchString)) {
+                    !CHANGELOG_TEMPLATE_TEXT.test(teamsMatchString)) {
                     teams_specific_changes.push(teamsMatchString);
                 }
             }
