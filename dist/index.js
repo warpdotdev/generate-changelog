@@ -47,7 +47,7 @@ const FIXES_REGEX = /^CHANGELOG-FIXES:(.*)/gm;
 const NEW_REGEX = /^CHANGELOG-NEW:(.*)/gm;
 const TEAMS_SPECIFIC_REGEX = /^TEAMS-SPECIFIC-CHANGES:(.*)/gm;
 // Template text for the changelog that should be ignored.
-const CHANGELOG_TEMPLATE_TEXT = /{{.*}}/gm;
+const CHANGELOG_TEMPLATE_TEXT = /{{.*}}/;
 // Generates a changelog by parsing PRs that were newly merged into the currentVersion.
 function generateChangelog(githubAuthToken, currentVersion, channel) {
     return __awaiter(this, void 0, void 0, function* () {
