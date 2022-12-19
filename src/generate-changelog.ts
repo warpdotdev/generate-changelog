@@ -5,10 +5,10 @@ import shell from 'shelljs'
 // Regexes to find the changelog contents within a PR.
 const FIXES_REGEX = /^CHANGELOG-FIXES:(.*)/gm
 const NEW_REGEX = /^CHANGELOG-NEW:(.*)/gm
-const TEAMS_SPECIFIC_REGEX = /^TEAMS-SPECIFIC-CHANGES:(.*)/gm;
+const TEAMS_SPECIFIC_REGEX = /^TEAMS-SPECIFIC-CHANGES:(.*)/gm
 
 // Template text for the changelog that should be ignored.
-const CHANGELOG_TEMPLATE_TEXT = /{{.*}}/gm
+const CHANGELOG_TEMPLATE_TEXT = /{{.*}}/
 
 export interface Changelog {
   added: string[] | undefined
