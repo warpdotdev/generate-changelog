@@ -46,6 +46,7 @@ const shelljs_1 = __importDefault(__nccwpck_require__(3516));
 const FIXES_REGEX = /^CHANGELOG-FIXES:(.*)/gm;
 const NEW_REGEX = /^CHANGELOG-NEW:(.*)/gm;
 const TEAMS_SPECIFIC_REGEX = /^TEAMS-SPECIFIC-CHANGES:(.*)/gm;
+const IMAGE_REGEX = /^CHANGELOG-IMAGE:(.*)/gm;
 // Template text for the changelog that should be ignored.
 const CHANGELOG_TEMPLATE_TEXT = /{{.*}}/;
 // Generates a changelog by parsing PRs that were newly merged into the currentVersion.
@@ -87,7 +88,7 @@ function generateChangelog(githubAuthToken, currentVersion, channel) {
         core.info(`Found commits ${commits}`);
         // There were no differences in commits between the current version and the previous version.
         if (commits.length === 0) {
-            return { added: undefined, fixed: undefined, teams: undefined };
+            return { added: undefined, fixed: undefined, teams: undefined, image: undefined };
         }
         const pullRequestMetadata = yield fetchPullRequestBodyFromCommits(commits, graphqlWithAuth);
         return parseChangelogFromPrDescriptions(pullRequestMetadata);
@@ -178,6 +179,7 @@ function parseChangelogFromPrDescriptions(prDescriptions) {
     const changelog_fixed = [];
     const changelog_new = [];
     const teams_specific_changes = [];
+    const changelog_image = [];
     for (const prDescription of prDescriptions) {
         const fixMatches = prDescription.matchAll(FIXES_REGEX);
         if (fixMatches) {
@@ -212,11 +214,24 @@ function parseChangelogFromPrDescriptions(prDescriptions) {
                 }
             }
         }
+        const imageMatches = prDescription.matchAll(IMAGE_REGEX);
+        if (imageMatches) {
+            const imageMatchesArray = [...imageMatches];
+            for (const imageMatch of imageMatchesArray) {
+                const imageMatchString = imageMatch[1].trim();
+                if (imageMatchString &&
+                    !CHANGELOG_TEMPLATE_TEXT.test(imageMatchString)) {
+                    changelog_image.push(imageMatchString);
+                }
+            }
+        }
     }
     return {
         added: changelog_new.length > 0 ? changelog_new : undefined,
         fixed: changelog_fixed.length > 0 ? changelog_fixed : undefined,
         teams: teams_specific_changes.length > 0 ? teams_specific_changes : undefined,
+        // If there are multiple images, only use the last one since the client can only display one image
+        image: changelog_image.length > 0 ? [changelog_image[changelog_image.length - 1]] : undefined,
     };
 }
 
