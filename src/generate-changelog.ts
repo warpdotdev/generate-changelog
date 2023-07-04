@@ -259,6 +259,6 @@ function parseChangelogFromPrDescriptions(prDescriptions: string[]): Changelog {
     fixed: changelog_fixed.length > 0 ? changelog_fixed : undefined,
     teams: teams_specific_changes.length > 0 ? teams_specific_changes : undefined,
     // If there are multiple images, only use the last one since the client can only display one image
-    image: changelog_image.length > 0 ? [changelog_image[-1]] : undefined,
+    image: changelog_image.length > 0 ? [changelog_image[changelog_image.length - 1]] : undefined,
   }
 }
