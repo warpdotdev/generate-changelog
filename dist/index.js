@@ -43,10 +43,14 @@ const core = __importStar(__nccwpck_require__(2186));
 const graphql_1 = __nccwpck_require__(8467);
 const shelljs_1 = __importDefault(__nccwpck_require__(3516));
 // Regexes to find the changelog contents within a PR.
-const FIXES_REGEX = /^CHANGELOG-FIXES:(.*)/gm;
-const NEW_REGEX = /^CHANGELOG-NEW:(.*)/gm;
-const TEAMS_SPECIFIC_REGEX = /^TEAMS-SPECIFIC-CHANGES:(.*)/gm;
+const NEW_FEATURE_REGEX = /^CHANGELOG-NEW-FEATURE:(.*)/gm;
+const IMPROVEMENT_REGEX = /^CHANGELOG-IMPROVEMENT:(.*)/gm;
+const BUG_FIX_REGEX = /^CHANGELOG-BUG-FIX:(.*)/gm;
 const IMAGE_REGEX = /^CHANGELOG-IMAGE:(.*)/gm;
+// These regexes are no longer in the template, but existing PRs might
+// still use them. Can clean up after some time (2 weeks or so).
+const OLD_NEW_REGEX = /^CHANGELOG-NEW:(.*)/gm;
+const OLD_FIX_REGEX = /^CHANGELOG-FIXES:(.*)/gm;
 // Template text for the changelog that should be ignored.
 const CHANGELOG_TEMPLATE_TEXT = /{{.*}}/;
 // Generates a changelog by parsing PRs that were newly merged into the currentVersion.
@@ -88,7 +92,7 @@ function generateChangelog(githubAuthToken, currentVersion, channel) {
         core.info(`Found commits ${commits}`);
         // There were no differences in commits between the current version and the previous version.
         if (commits.length === 0) {
-            return { added: undefined, fixed: undefined, teams: undefined, image: undefined };
+            return { newFeatures: undefined, improvements: undefined, bugFixes: undefined, images: undefined };
         }
         const pullRequestMetadata = yield fetchPullRequestBodyFromCommits(commits, graphqlWithAuth);
         return parseChangelogFromPrDescriptions(pullRequestMetadata);
@@ -172,66 +176,47 @@ function getReleases(graphqlWithAuth) {
         return releaseInfo;
     });
 }
-// Produces the changelog from an array of PR descriptions. At a high level, we
-// traverse each PR description searching for `CHANGELOG-FIXES:` or `CHANGELOG-ADDS:`
-// to determine what the changelog conntents should be.
-function parseChangelogFromPrDescriptions(prDescriptions) {
-    const changelog_fixed = [];
-    const changelog_new = [];
-    const teams_specific_changes = [];
-    const changelog_image = [];
-    for (const prDescription of prDescriptions) {
-        const fixMatches = prDescription.matchAll(FIXES_REGEX);
-        if (fixMatches) {
-            const fixMatchesArray = [...fixMatches];
-            for (const fixMatch of fixMatchesArray) {
-                const fixMatchString = fixMatch[1].trim();
-                if (fixMatchString &&
-                    !CHANGELOG_TEMPLATE_TEXT.test(fixMatchString)) {
-                    changelog_fixed.push(fixMatchString);
-                }
-            }
-        }
-        const addMatches = prDescription.matchAll(NEW_REGEX);
-        if (addMatches) {
-            const addMatchesArray = [...addMatches];
-            for (const addMatch of addMatchesArray) {
-                const addMatchString = addMatch[1].trim();
-                if (addMatchString &&
-                    !CHANGELOG_TEMPLATE_TEXT.test(addMatchString)) {
-                    changelog_new.push(addMatchString);
-                }
-            }
-        }
-        const teamsMatches = prDescription.matchAll(TEAMS_SPECIFIC_REGEX);
-        if (teamsMatches) {
-            const teamsMatchesArray = [...teamsMatches];
-            for (const teamsMatch of teamsMatchesArray) {
-                const teamsMatchString = teamsMatch[1].trim();
-                if (teamsMatchString &&
-                    !CHANGELOG_TEMPLATE_TEXT.test(teamsMatchString)) {
-                    teams_specific_changes.push(teamsMatchString);
-                }
-            }
-        }
-        const imageMatches = prDescription.matchAll(IMAGE_REGEX);
-        if (imageMatches) {
-            const imageMatchesArray = [...imageMatches];
-            for (const imageMatch of imageMatchesArray) {
-                const imageMatchString = imageMatch[1].trim();
-                if (imageMatchString &&
-                    !CHANGELOG_TEMPLATE_TEXT.test(imageMatchString)) {
-                    changelog_image.push(imageMatchString);
-                }
+// Given a description and a regex, parses the description, looking for all lines that match
+// the regex. Any non-default matches will be returned in the result.
+function parseMatchesFromDescription(prDescription, regex) {
+    const changelogItems = [];
+    const matches = prDescription.matchAll(regex);
+    if (matches) {
+        const matchesArray = [...matches];
+        for (const match of matchesArray) {
+            const matchString = match[1].trim();
+            if (matchString &&
+                !CHANGELOG_TEMPLATE_TEXT.test(matchString)) {
+                changelogItems.push(matchString);
             }
         }
     }
+    return changelogItems;
+}
+// Produces the changelog from an array of PR descriptions. At a high level, we
+// traverse each PR description searching for different changelog prefix strings
+// to determine what the changelog contents should be.
+function parseChangelogFromPrDescriptions(prDescriptions) {
+    const changelogNewFeatures = [];
+    const changelogImprovements = [];
+    const changelogBugFixes = [];
+    const changelogImages = [];
+    for (const prDescription of prDescriptions) {
+        changelogNewFeatures.push(...parseMatchesFromDescription(prDescription, NEW_FEATURE_REGEX));
+        changelogImprovements.push(...parseMatchesFromDescription(prDescription, IMPROVEMENT_REGEX));
+        changelogBugFixes.push(...parseMatchesFromDescription(prDescription, BUG_FIX_REGEX));
+        changelogImages.push(...parseMatchesFromDescription(prDescription, IMAGE_REGEX));
+        // temporary: anything with the old CHANGELOG-NEW will go in the "New Features" bucket
+        changelogNewFeatures.push(...parseMatchesFromDescription(prDescription, OLD_NEW_REGEX));
+        // temporary: anything with the old CHANGELOG-FIXES will go in the "Bug Fixes" bucket
+        changelogBugFixes.push(...parseMatchesFromDescription(prDescription, OLD_FIX_REGEX));
+    }
     return {
-        added: changelog_new.length > 0 ? changelog_new : undefined,
-        fixed: changelog_fixed.length > 0 ? changelog_fixed : undefined,
-        teams: teams_specific_changes.length > 0 ? teams_specific_changes : undefined,
+        newFeatures: changelogNewFeatures.length > 0 ? changelogNewFeatures : undefined,
+        improvements: changelogImprovements.length > 0 ? changelogImprovements : undefined,
+        bugFixes: changelogBugFixes.length > 0 ? changelogBugFixes : undefined,
         // If there are multiple images, only use the last one since the client can only display one image
-        image: changelog_image.length > 0 ? [changelog_image[changelog_image.length - 1]] : undefined,
+        images: changelogImages.length > 0 ? [changelogImages[changelogImages.length - 1]] : undefined,
     };
 }
 
