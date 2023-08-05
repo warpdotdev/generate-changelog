@@ -1,21 +1,26 @@
 import * as core from '@actions/core'
-import {graphql} from '@octokit/graphql'
+import { graphql } from '@octokit/graphql'
 import shell from 'shelljs'
 
 // Regexes to find the changelog contents within a PR.
-const FIXES_REGEX = /^CHANGELOG-FIXES:(.*)/gm
-const NEW_REGEX = /^CHANGELOG-NEW:(.*)/gm
-const TEAMS_SPECIFIC_REGEX = /^TEAMS-SPECIFIC-CHANGES:(.*)/gm
+const NEW_FEATURE_REGEX = /^CHANGELOG-NEW-FEATURE:(.*)/gm
+const IMPROVEMENT_REGEX = /^CHANGELOG-IMPROVEMENT:(.*)/gm
+const BUG_FIX_REGEX = /^CHANGELOG-BUG-FIX:(.*)/gm
 const IMAGE_REGEX = /^CHANGELOG-IMAGE:(.*)/gm
+
+// These regexes are no longer in the template, but existing PRs might
+// still use them. Can clean up after some time (2 weeks or so).
+const OLD_NEW_REGEX = /^CHANGELOG-NEW:(.*)/gm
+const OLD_FIX_REGEX = /^CHANGELOG-FIXES:(.*)/gm
 
 // Template text for the changelog that should be ignored.
 const CHANGELOG_TEMPLATE_TEXT = /{{.*}}/
 
 export interface Changelog {
-  added: string[] | undefined
-  fixed: string[] | undefined
-  teams: string[] | undefined
-  image: string[] | undefined
+  newFeatures: string[] | undefined
+  improvements: string[] | undefined
+  bugFixes: string[] | undefined
+  images: string[] | undefined
 }
 
 interface ReleaseInfo {
@@ -76,7 +81,7 @@ export async function generateChangelog(
   // Find all the commits that are in `currentBranch` but not `previousBranch`.
   const command = shell.exec(
     `git --no-pager log  ^${previousBranch} ${currentBranch} --pretty=format:%H`,
-    {silent: true}
+    { silent: true }
   )
 
   const commits = command.stdout
@@ -87,7 +92,7 @@ export async function generateChangelog(
 
   // There were no differences in commits between the current version and the previous version.
   if (commits.length === 0) {
-    return {added: undefined, fixed: undefined, teams: undefined, image: undefined}
+    return { newFeatures: undefined, improvements: undefined, bugFixes: undefined, images: undefined }
   }
 
   const pullRequestMetadata = await fetchPullRequestBodyFromCommits(
@@ -185,80 +190,58 @@ async function getReleases(graphqlWithAuth: Function): Promise<ReleaseInfo[]> {
   const releases = response.repository.releases.nodes as GraphQLRelease[]
 
   for (const release of releases) {
-    releaseInfo.push({name: release.name, version: release.tag.name})
+    releaseInfo.push({ name: release.name, version: release.tag.name })
   }
 
   return releaseInfo
 }
 
-// Produces the changelog from an array of PR descriptions. At a high level, we
-// traverse each PR description searching for `CHANGELOG-FIXES:` or `CHANGELOG-ADDS:`
-// to determine what the changelog conntents should be.
-function parseChangelogFromPrDescriptions(prDescriptions: string[]): Changelog {
-  const changelog_fixed: string[] = []
-  const changelog_new: string[] = []
-  const teams_specific_changes: string[] = [];
-  const changelog_image: string[] = [];
-
-  for (const prDescription of prDescriptions) {
-    const fixMatches = prDescription.matchAll(FIXES_REGEX)
-    if (fixMatches) {
-      const fixMatchesArray = [...fixMatches]
-      for (const fixMatch of fixMatchesArray) {
-        const fixMatchString = fixMatch[1].trim()
-        if (
-          fixMatchString &&
-          !CHANGELOG_TEMPLATE_TEXT.test(fixMatchString)
-        ) {
-          changelog_fixed.push(fixMatchString)
-        }
+// Given a description and a regex, parses the description, looking for all lines that match
+// the regex. Any non-default matches will be returned in the result.
+function parseMatchesFromDescription(prDescription: string, regex: RegExp): string[] {
+  const changelogItems: string[] = [];
+  const matches = prDescription.matchAll(regex)
+  if (matches) {
+    const matchesArray = [...matches]
+    for (const match of matchesArray) {
+      const matchString = match[1].trim()
+      if (
+        matchString &&
+        !CHANGELOG_TEMPLATE_TEXT.test(matchString)
+      ) {
+        changelogItems.push(matchString)
       }
     }
-
-    const addMatches = prDescription.matchAll(NEW_REGEX)
-    if (addMatches) {
-      const addMatchesArray = [...addMatches]
-      for (const addMatch of addMatchesArray) {
-        const addMatchString = addMatch[1].trim()
-        if (
-          addMatchString &&
-          !CHANGELOG_TEMPLATE_TEXT.test(addMatchString)
-        ) {
-          changelog_new.push(addMatchString)
-        }
-      }
-    }
-    
-    const teamsMatches = prDescription.matchAll(TEAMS_SPECIFIC_REGEX);
-        if (teamsMatches) {
-            const teamsMatchesArray = [...teamsMatches];
-            for (const teamsMatch of teamsMatchesArray) {
-                const teamsMatchString = teamsMatch[1].trim();
-                if (teamsMatchString &&
-                    !CHANGELOG_TEMPLATE_TEXT.test(teamsMatchString)) {
-                      teams_specific_changes.push(teamsMatchString);
-                }
-            }
-        }
-    
-    const imageMatches = prDescription.matchAll(IMAGE_REGEX);
-        if (imageMatches) {
-          const imageMatchesArray = [...imageMatches];
-          for (const imageMatch of imageMatchesArray) {
-            const imageMatchString = imageMatch[1].trim();
-            if (imageMatchString &&
-              !CHANGELOG_TEMPLATE_TEXT.test(imageMatchString)) {
-                changelog_image.push(imageMatchString);
-            }
-          }
-      }
+  }
+  return changelogItems
 }
 
+// Produces the changelog from an array of PR descriptions. At a high level, we
+// traverse each PR description searching for different changelog prefix strings
+// to determine what the changelog contents should be.
+function parseChangelogFromPrDescriptions(prDescriptions: string[]): Changelog {
+  const changelogNewFeatures: string[] = []
+  const changelogImprovements: string[] = []
+  const changelogBugFixes: string[] = [];
+  const changelogImages: string[] = [];
+
+  for (const prDescription of prDescriptions) {
+    changelogNewFeatures.push(...parseMatchesFromDescription(prDescription, NEW_FEATURE_REGEX))
+    changelogImprovements.push(...parseMatchesFromDescription(prDescription, IMPROVEMENT_REGEX))
+    changelogBugFixes.push(...parseMatchesFromDescription(prDescription, BUG_FIX_REGEX))
+    changelogImages.push(...parseMatchesFromDescription(prDescription, IMAGE_REGEX))
+
+    // temporary: anything with the old CHANGELOG-NEW will go in the "New Features" bucket
+    changelogNewFeatures.push(...parseMatchesFromDescription(prDescription, OLD_NEW_REGEX))
+    // temporary: anything with the old CHANGELOG-FIXES will go in the "Bug Fixes" bucket
+    changelogBugFixes.push(...parseMatchesFromDescription(prDescription, OLD_FIX_REGEX))
+  }
+
   return {
-    added: changelog_new.length > 0 ? changelog_new : undefined,
-    fixed: changelog_fixed.length > 0 ? changelog_fixed : undefined,
-    teams: teams_specific_changes.length > 0 ? teams_specific_changes : undefined,
+    newFeatures: changelogNewFeatures.length > 0 ? changelogNewFeatures : undefined,
+    improvements: changelogImprovements.length > 0 ? changelogImprovements : undefined,
+    bugFixes: changelogBugFixes.length > 0 ? changelogBugFixes : undefined,
     // If there are multiple images, only use the last one since the client can only display one image
-    image: changelog_image.length > 0 ? [changelog_image[changelog_image.length - 1]] : undefined,
+    images: changelogImages.length > 0 ? [changelogImages[changelogImages.length - 1]] : undefined,
   }
 }
