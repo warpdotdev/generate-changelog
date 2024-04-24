@@ -27,14 +27,14 @@
     "@actions/core": "^1.6.0",
     "@types/shelljs": "^0.8.11",
     "https": "^1.0.0",
-    "octokit": "^1.7.1",
+    "octokit": "^3.2.0",
     "shelljs": "^0.8.5",
     "util": "^0.12.4"
   },
   "devDependencies": {
     "@types/node": "^16.10.5",
     "@typescript-eslint/parser": "^5.8.1",
-    "@vercel/ncc": "^0.31.1",
+    "@vercel/ncc": "^0.38.1",
     "eslint": "^8.0.1",
     "eslint-plugin-github": "^4.3.7",
     "eslint-plugin-jest": "^25.3.2",
