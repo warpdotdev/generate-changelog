@@ -126,9 +126,9 @@ function branchFromVersion(version: string, channel: string): string {
 }
 
 function chunkArray(originalArray: string[], chunkSize: number): string[][] {
-  let arrayChunks: string[][] = []
+  const arrayChunks: string[][] = []
   let currentChunk: string[] = []
-  for (const item in originalArray) {
+  for (const item of originalArray) {
     currentChunk.push(item)
     if (currentChunk.length >= chunkSize) {
       arrayChunks.push(currentChunk)
