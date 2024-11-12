@@ -125,43 +125,63 @@ function branchFromVersion(version: string, channel: string): string {
   )}`
 }
 
+function chunkArray(originalArray: string[], chunkSize: number): string[][] {
+  let arrayChunks: string[][] = []
+  let currentChunk: string[] = []
+  for (const item in originalArray) {
+    currentChunk.push(item)
+    if (currentChunk.length >= chunkSize) {
+      arrayChunks.push(currentChunk)
+      currentChunk = []
+    }
+  }
+  return arrayChunks
+}
+
 // Fetches PR body text from a series of commits.
 async function fetchPullRequestBodyFromCommits(
   commits: string[],
   graphqlWithAuth: Function
 ): Promise<string[]> {
   let commitsSubQuery = ''
-  for (const oid of commits) {
-    commitsSubQuery += `
-      commit_${oid}: object(oid: "${oid}") {
-        ... on Commit {
-          oid
-          author {
-            name
-          }
-          associatedPullRequests(first: 1) {
-            nodes {
-                body
+
+  // Split the list of commits into batches of 25,
+  // then request one batch at a time.
+  const commitBatches = chunkArray(commits, 25)
+  const commitsInfo: string[] = []
+
+  for (const commitBatch of commitBatches) {
+    for (const oid of commitBatch) {
+      commitsSubQuery += `
+        commit_${oid}: object(oid: "${oid}") {
+          ... on Commit {
+            oid
+            author {
+              name
+            }
+            associatedPullRequests(first: 1) {
+              nodes {
+                  body
+              }
             }
           }
         }
-      }
-  `
-  }
-
-  const response = await graphqlWithAuth(`
-  {
-    repository(owner: "warpdotdev", name: "warp-internal") {
-      ${commitsSubQuery}
+    `
     }
-  }
-`)
 
-  const commitsInfo: string[] = []
-  for (const oid of commits) {
-    const commitResponse = response.repository[`commit_${oid}`]
-    if (commitResponse.associatedPullRequests.nodes.length > 0) {
-      commitsInfo.push(commitResponse.associatedPullRequests.nodes[0].body)
+    const response = await graphqlWithAuth(`
+    {
+      repository(owner: "warpdotdev", name: "warp-internal") {
+        ${commitsSubQuery}
+      }
+    }
+  `)
+
+    for (const oid of commitBatch) {
+      const commitResponse = response.repository[`commit_${oid}`]
+      if (commitResponse.associatedPullRequests.nodes.length > 0) {
+        commitsInfo.push(commitResponse.associatedPullRequests.nodes[0].body)
+      }
     }
   }
   return commitsInfo
