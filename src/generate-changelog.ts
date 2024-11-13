@@ -135,6 +135,9 @@ function chunkArray(originalArray: string[], chunkSize: number): string[][] {
       currentChunk = []
     }
   }
+  if (currentChunk.length > 0) {
+    arrayChunks.push(currentChunk)
+  }
   return arrayChunks
 }
 
