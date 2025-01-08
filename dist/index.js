@@ -112,39 +112,59 @@ function isVersionGreater(currentVersion, releaseVersion) {
 function branchFromVersion(version, channel) {
     return `origin/${channel}_release/${version.substring(0, version.indexOf('_'))}`;
 }
+function chunkArray(originalArray, chunkSize) {
+    const arrayChunks = [];
+    let currentChunk = [];
+    for (const item of originalArray) {
+        currentChunk.push(item);
+        if (currentChunk.length >= chunkSize) {
+            arrayChunks.push(currentChunk);
+            currentChunk = [];
+        }
+    }
+    if (currentChunk.length > 0) {
+        arrayChunks.push(currentChunk);
+    }
+    return arrayChunks;
+}
 // Fetches PR body text from a series of commits.
 function fetchPullRequestBodyFromCommits(commits, graphqlWithAuth) {
     return __awaiter(this, void 0, void 0, function* () {
         let commitsSubQuery = '';
-        for (const oid of commits) {
-            commitsSubQuery += `
-      commit_${oid}: object(oid: "${oid}") {
-        ... on Commit {
-          oid
-          author {
-            name
-          }
-          associatedPullRequests(first: 1) {
-            nodes {
-                body
+        // Split the list of commits into batches of 25,
+        // then request one batch at a time.
+        const commitBatches = chunkArray(commits, 25);
+        const commitsInfo = [];
+        for (const commitBatch of commitBatches) {
+            for (const oid of commitBatch) {
+                commitsSubQuery += `
+        commit_${oid}: object(oid: "${oid}") {
+          ... on Commit {
+            oid
+            author {
+              name
+            }
+            associatedPullRequests(first: 1) {
+              nodes {
+                  body
+              }
             }
           }
         }
+    `;
+            }
+            const response = yield graphqlWithAuth(`
+    {
+      repository(owner: "warpdotdev", name: "warp-internal") {
+        ${commitsSubQuery}
       }
-  `;
-        }
-        const response = yield graphqlWithAuth(`
-  {
-    repository(owner: "warpdotdev", name: "warp-internal") {
-      ${commitsSubQuery}
     }
-  }
-`);
-        const commitsInfo = [];
-        for (const oid of commits) {
-            const commitResponse = response.repository[`commit_${oid}`];
-            if (commitResponse.associatedPullRequests.nodes.length > 0) {
-                commitsInfo.push(commitResponse.associatedPullRequests.nodes[0].body);
+  `);
+            for (const oid of commitBatch) {
+                const commitResponse = response.repository[`commit_${oid}`];
+                if (commitResponse.associatedPullRequests.nodes.length > 0) {
+                    commitsInfo.push(commitResponse.associatedPullRequests.nodes[0].body);
+                }
             }
         }
         return commitsInfo;
