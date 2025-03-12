@@ -40,7 +40,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.generateChangelog = void 0;
 const core = __importStar(__nccwpck_require__(2186));
-const graphql_1 = __nccwpck_require__(9894);
 const shelljs_1 = __importDefault(__nccwpck_require__(3516));
 // Regexes to find the changelog contents within a PR.
 const NEW_FEATURE_REGEX = /^CHANGELOG-NEW-FEATURE:(.*)/gm;
@@ -56,7 +55,8 @@ const CHANGELOG_TEMPLATE_TEXT = /{{.*}}/;
 // Generates a changelog by parsing PRs that were newly merged into the currentVersion.
 function generateChangelog(githubAuthToken, currentVersion, channel) {
     return __awaiter(this, void 0, void 0, function* () {
-        const graphqlWithAuth = graphql_1.graphql.defaults({
+        const { graphql } = yield Promise.resolve().then(() => __importStar(__nccwpck_require__(9894)));
+        const graphqlWithAuth = graphql.defaults({
             headers: {
                 authorization: `token ${githubAuthToken}`
             }
@@ -92,12 +92,7 @@ function generateChangelog(githubAuthToken, currentVersion, channel) {
         core.info(`Found commits ${commits}`);
         // There were no differences in commits between the current version and the previous version.
         if (commits.length === 0) {
-            return {
-                newFeatures: undefined,
-                improvements: undefined,
-                bugFixes: undefined,
-                images: undefined
-            };
+            return { newFeatures: undefined, improvements: undefined, bugFixes: undefined, images: undefined };
         }
         const pullRequestMetadata = yield fetchPullRequestBodyFromCommits(commits, graphqlWithAuth);
         return parseChangelogFromPrDescriptions(pullRequestMetadata);
@@ -210,7 +205,8 @@ function parseMatchesFromDescription(prDescription, regex) {
         const matchesArray = [...matches];
         for (const match of matchesArray) {
             const matchString = match[1].trim();
-            if (matchString && !CHANGELOG_TEMPLATE_TEXT.test(matchString)) {
+            if (matchString &&
+                !CHANGELOG_TEMPLATE_TEXT.test(matchString)) {
                 changelogItems.push(matchString);
             }
         }
@@ -240,9 +236,7 @@ function parseChangelogFromPrDescriptions(prDescriptions) {
         improvements: changelogImprovements.length > 0 ? changelogImprovements : undefined,
         bugFixes: changelogBugFixes.length > 0 ? changelogBugFixes : undefined,
         // If there are multiple images, only use the last one since the client can only display one image
-        images: changelogImages.length > 0
-            ? [changelogImages[changelogImages.length - 1]]
-            : undefined
+        images: changelogImages.length > 0 ? [changelogImages[changelogImages.length - 1]] : undefined,
     };
 }
 
