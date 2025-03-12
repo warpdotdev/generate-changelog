@@ -1,5 +1,4 @@
 import * as core from '@actions/core'
-import { graphql } from '@octokit/graphql'
 import shell from 'shelljs'
 
 // Regexes to find the changelog contents within a PR.
@@ -41,6 +40,7 @@ export async function generateChangelog(
   currentVersion: string,
   channel: string
 ): Promise<Changelog> {
+  const { graphql } = await import('@octokit/graphql');
   const graphqlWithAuth = graphql.defaults({
     headers: {
       authorization: `token ${githubAuthToken}`

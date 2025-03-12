@@ -25,9 +25,10 @@
   "license": "MIT",
   "dependencies": {
     "@actions/core": "^1.6.0",
+    "@octokit/graphql": "^8.2.1",
     "@types/shelljs": "^0.8.11",
     "https": "^1.0.0",
-    "octokit": "^3.2.0",
+    "octokit": "^4.1.2",
     "shelljs": "^0.8.5",
     "util": "^0.12.4"
   },
@@ -36,7 +37,9 @@
     "@typescript-eslint/parser": "^5.8.1",
     "@vercel/ncc": "^0.38.1",
     "eslint": "^8.0.1",
+    "eslint-import-resolver-typescript": "^3.8.5",
     "eslint-plugin-github": "^4.3.7",
+    "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-jest": "^25.3.2",
     "js-yaml": "^4.1.0",
     "prettier": "2.5.1",
