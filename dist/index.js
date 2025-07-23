@@ -92,7 +92,12 @@ function generateChangelog(githubAuthToken, currentVersion, channel) {
         core.info(`Found commits ${commits}`);
         // There were no differences in commits between the current version and the previous version.
         if (commits.length === 0) {
-            return { newFeatures: undefined, improvements: undefined, bugFixes: undefined, images: undefined };
+            return {
+                newFeatures: undefined,
+                improvements: undefined,
+                bugFixes: undefined,
+                images: undefined
+            };
         }
         const pullRequestMetadata = yield fetchPullRequestBodyFromCommits(commits, graphqlWithAuth);
         return parseChangelogFromPrDescriptions(pullRequestMetadata);
@@ -205,8 +210,7 @@ function parseMatchesFromDescription(prDescription, regex) {
         const matchesArray = [...matches];
         for (const match of matchesArray) {
             const matchString = match[1].trim();
-            if (matchString &&
-                !CHANGELOG_TEMPLATE_TEXT.test(matchString)) {
+            if (matchString && !CHANGELOG_TEMPLATE_TEXT.test(matchString)) {
                 changelogItems.push(matchString);
             }
         }
@@ -236,7 +240,9 @@ function parseChangelogFromPrDescriptions(prDescriptions) {
         improvements: changelogImprovements.length > 0 ? changelogImprovements : undefined,
         bugFixes: changelogBugFixes.length > 0 ? changelogBugFixes : undefined,
         // If there are multiple images, only use the last one since the client can only display one image
-        images: changelogImages.length > 0 ? [changelogImages[changelogImages.length - 1]] : undefined,
+        images: changelogImages.length > 0
+            ? [changelogImages[changelogImages.length - 1]]
+            : undefined
     };
 }
 
@@ -3676,7 +3682,7 @@ function expand(str, isTop) {
   var isOptions = m.body.indexOf(',') >= 0;
   if (!isSequence && !isOptions) {
     // {a},b}
-    if (m.post.match(/,.*\}/)) {
+    if (m.post.match(/,(?!,).*\}/)) {
       str = m.pre + '{' + m.body + escClose + m.post;
       return expand(str);
     }
