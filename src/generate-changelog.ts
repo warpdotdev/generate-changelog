@@ -40,7 +40,7 @@ export async function generateChangelog(
   currentVersion: string,
   channel: string
 ): Promise<Changelog> {
-  const { graphql } = await import('@octokit/graphql');
+  const {graphql} = await import('@octokit/graphql')
   const graphqlWithAuth = graphql.defaults({
     headers: {
       authorization: `token ${githubAuthToken}`
@@ -81,7 +81,7 @@ export async function generateChangelog(
   // Find all the commits that are in `currentBranch` but not `previousBranch`.
   const command = shell.exec(
     `git --no-pager log  ^${previousBranch} ${currentBranch} --pretty=format:%H`,
-    { silent: true }
+    {silent: true}
   )
 
   const commits = command.stdout
@@ -92,7 +92,12 @@ export async function generateChangelog(
 
   // There were no differences in commits between the current version and the previous version.
   if (commits.length === 0) {
-    return { newFeatures: undefined, improvements: undefined, bugFixes: undefined, images: undefined }
+    return {
+      newFeatures: undefined,
+      improvements: undefined,
+      bugFixes: undefined,
+      images: undefined
+    }
   }
 
   const pullRequestMetadata = await fetchPullRequestBodyFromCommits(
@@ -213,7 +218,7 @@ async function getReleases(graphqlWithAuth: Function): Promise<ReleaseInfo[]> {
   const releases = response.repository.releases.nodes as GraphQLRelease[]
 
   for (const release of releases) {
-    releaseInfo.push({ name: release.name, version: release.tag.name })
+    releaseInfo.push({name: release.name, version: release.tag.name})
   }
 
   return releaseInfo
@@ -221,17 +226,17 @@ async function getReleases(graphqlWithAuth: Function): Promise<ReleaseInfo[]> {
 
 // Given a description and a regex, parses the description, looking for all lines that match
 // the regex. Any non-default matches will be returned in the result.
-function parseMatchesFromDescription(prDescription: string, regex: RegExp): string[] {
-  const changelogItems: string[] = [];
+function parseMatchesFromDescription(
+  prDescription: string,
+  regex: RegExp
+): string[] {
+  const changelogItems: string[] = []
   const matches = prDescription.matchAll(regex)
   if (matches) {
     const matchesArray = [...matches]
     for (const match of matchesArray) {
       const matchString = match[1].trim()
-      if (
-        matchString &&
-        !CHANGELOG_TEMPLATE_TEXT.test(matchString)
-      ) {
+      if (matchString && !CHANGELOG_TEMPLATE_TEXT.test(matchString)) {
         changelogItems.push(matchString)
       }
     }
@@ -245,26 +250,43 @@ function parseMatchesFromDescription(prDescription: string, regex: RegExp): stri
 function parseChangelogFromPrDescriptions(prDescriptions: string[]): Changelog {
   const changelogNewFeatures: string[] = []
   const changelogImprovements: string[] = []
-  const changelogBugFixes: string[] = [];
-  const changelogImages: string[] = [];
+  const changelogBugFixes: string[] = []
+  const changelogImages: string[] = []
 
   for (const prDescription of prDescriptions) {
-    changelogNewFeatures.push(...parseMatchesFromDescription(prDescription, NEW_FEATURE_REGEX))
-    changelogImprovements.push(...parseMatchesFromDescription(prDescription, IMPROVEMENT_REGEX))
-    changelogBugFixes.push(...parseMatchesFromDescription(prDescription, BUG_FIX_REGEX))
-    changelogImages.push(...parseMatchesFromDescription(prDescription, IMAGE_REGEX))
+    changelogNewFeatures.push(
+      ...parseMatchesFromDescription(prDescription, NEW_FEATURE_REGEX)
+    )
+    changelogImprovements.push(
+      ...parseMatchesFromDescription(prDescription, IMPROVEMENT_REGEX)
+    )
+    changelogBugFixes.push(
+      ...parseMatchesFromDescription(prDescription, BUG_FIX_REGEX)
+    )
+    changelogImages.push(
+      ...parseMatchesFromDescription(prDescription, IMAGE_REGEX)
+    )
 
     // temporary: anything with the old CHANGELOG-NEW will go in the "New Features" bucket
-    changelogNewFeatures.push(...parseMatchesFromDescription(prDescription, OLD_NEW_REGEX))
+    changelogNewFeatures.push(
+      ...parseMatchesFromDescription(prDescription, OLD_NEW_REGEX)
+    )
     // temporary: anything with the old CHANGELOG-FIXES will go in the "Bug Fixes" bucket
-    changelogBugFixes.push(...parseMatchesFromDescription(prDescription, OLD_FIX_REGEX))
+    changelogBugFixes.push(
+      ...parseMatchesFromDescription(prDescription, OLD_FIX_REGEX)
+    )
   }
 
   return {
-    newFeatures: changelogNewFeatures.length > 0 ? changelogNewFeatures : undefined,
-    improvements: changelogImprovements.length > 0 ? changelogImprovements : undefined,
+    newFeatures:
+      changelogNewFeatures.length > 0 ? changelogNewFeatures : undefined,
+    improvements:
+      changelogImprovements.length > 0 ? changelogImprovements : undefined,
     bugFixes: changelogBugFixes.length > 0 ? changelogBugFixes : undefined,
     // If there are multiple images, only use the last one since the client can only display one image
-    images: changelogImages.length > 0 ? [changelogImages[changelogImages.length - 1]] : undefined,
+    images:
+      changelogImages.length > 0
+        ? [changelogImages[changelogImages.length - 1]]
+        : undefined
   }
 }
