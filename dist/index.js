@@ -132,15 +132,20 @@ function chunkArray(originalArray, chunkSize) {
     }
     return arrayChunks;
 }
+const COMMIT_BATCH_SIZE = 25;
 // Fetches PR body text from a series of commits.
 function fetchPullRequestBodyFromCommits(commits, graphqlWithAuth) {
     return __awaiter(this, void 0, void 0, function* () {
-        let commitsSubQuery = '';
         // Split the list of commits into batches of 25,
         // then request one batch at a time.
-        const commitBatches = chunkArray(commits, 25);
+        const commitBatches = chunkArray(commits, COMMIT_BATCH_SIZE);
         const commitsInfo = [];
-        for (const commitBatch of commitBatches) {
+        for (let i = 0; i < commitBatches.length; i++) {
+            const commitBatch = commitBatches[i];
+            const startIndex = i * COMMIT_BATCH_SIZE + 1;
+            const endIndex = Math.min((i + 1) * COMMIT_BATCH_SIZE, commits.length);
+            core.info(`Downloading commits ${startIndex}-${endIndex} out of ${commits.length} total`);
+            let commitsSubQuery = '';
             for (const oid of commitBatch) {
                 commitsSubQuery += `
         commit_${oid}: object(oid: "${oid}") {
