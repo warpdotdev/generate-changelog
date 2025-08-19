@@ -146,7 +146,7 @@ function chunkArray(originalArray: string[], chunkSize: number): string[][] {
   return arrayChunks
 }
 
-const COMMIT_BATCH_SIZE = 25;
+const COMMIT_BATCH_SIZE = 10;
 
 // Fetches PR body text from a series of commits.
 async function fetchPullRequestBodyFromCommits(
