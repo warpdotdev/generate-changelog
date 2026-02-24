@@ -6,6 +6,7 @@ const NEW_FEATURE_REGEX = /^CHANGELOG-NEW-FEATURE:(.*)/gm
 const IMPROVEMENT_REGEX = /^CHANGELOG-IMPROVEMENT:(.*)/gm
 const BUG_FIX_REGEX = /^CHANGELOG-BUG-FIX:(.*)/gm
 const IMAGE_REGEX = /^CHANGELOG-IMAGE:(.*)/gm
+const OZ_REGEX = /^CHANGELOG-OZ:(.*)/gm
 
 // These regexes are no longer in the template, but existing PRs might
 // still use them. Can clean up after some time (2 weeks or so).
@@ -20,6 +21,7 @@ export interface Changelog {
   improvements: string[] | undefined
   bugFixes: string[] | undefined
   images: string[] | undefined
+  oz: string[] | undefined
 }
 
 interface ReleaseInfo {
@@ -96,7 +98,8 @@ export async function generateChangelog(
       newFeatures: undefined,
       improvements: undefined,
       bugFixes: undefined,
-      images: undefined
+      images: undefined,
+      oz: undefined
     }
   }
 
@@ -258,6 +261,7 @@ function parseChangelogFromPrDescriptions(prDescriptions: string[]): Changelog {
   const changelogImprovements: string[] = []
   const changelogBugFixes: string[] = []
   const changelogImages: string[] = []
+  const changelogOz: string[] = []
 
   for (const prDescription of prDescriptions) {
     changelogNewFeatures.push(
@@ -271,6 +275,9 @@ function parseChangelogFromPrDescriptions(prDescriptions: string[]): Changelog {
     )
     changelogImages.push(
       ...parseMatchesFromDescription(prDescription, IMAGE_REGEX)
+    )
+    changelogOz.push(
+      ...parseMatchesFromDescription(prDescription, OZ_REGEX)
     )
 
     // temporary: anything with the old CHANGELOG-NEW will go in the "New Features" bucket
@@ -293,6 +300,7 @@ function parseChangelogFromPrDescriptions(prDescriptions: string[]): Changelog {
     images:
       changelogImages.length > 0
         ? [changelogImages[changelogImages.length - 1]]
-        : undefined
+        : undefined,
+    oz: changelogOz.length > 0 ? changelogOz : undefined
   }
 }
