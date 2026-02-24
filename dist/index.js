@@ -46,6 +46,7 @@ const NEW_FEATURE_REGEX = /^CHANGELOG-NEW-FEATURE:(.*)/gm;
 const IMPROVEMENT_REGEX = /^CHANGELOG-IMPROVEMENT:(.*)/gm;
 const BUG_FIX_REGEX = /^CHANGELOG-BUG-FIX:(.*)/gm;
 const IMAGE_REGEX = /^CHANGELOG-IMAGE:(.*)/gm;
+const OZ_REGEX = /^CHANGELOG-OZ:(.*)/gm;
 // These regexes are no longer in the template, but existing PRs might
 // still use them. Can clean up after some time (2 weeks or so).
 const OLD_NEW_REGEX = /^CHANGELOG-NEW:(.*)/gm;
@@ -96,7 +97,8 @@ function generateChangelog(githubAuthToken, currentVersion, channel) {
                 newFeatures: undefined,
                 improvements: undefined,
                 bugFixes: undefined,
-                images: undefined
+                images: undefined,
+                oz: undefined
             };
         }
         const pullRequestMetadata = yield fetchPullRequestBodyFromCommits(commits, graphqlWithAuth);
@@ -230,11 +232,13 @@ function parseChangelogFromPrDescriptions(prDescriptions) {
     const changelogImprovements = [];
     const changelogBugFixes = [];
     const changelogImages = [];
+    const changelogOz = [];
     for (const prDescription of prDescriptions) {
         changelogNewFeatures.push(...parseMatchesFromDescription(prDescription, NEW_FEATURE_REGEX));
         changelogImprovements.push(...parseMatchesFromDescription(prDescription, IMPROVEMENT_REGEX));
         changelogBugFixes.push(...parseMatchesFromDescription(prDescription, BUG_FIX_REGEX));
         changelogImages.push(...parseMatchesFromDescription(prDescription, IMAGE_REGEX));
+        changelogOz.push(...parseMatchesFromDescription(prDescription, OZ_REGEX));
         // temporary: anything with the old CHANGELOG-NEW will go in the "New Features" bucket
         changelogNewFeatures.push(...parseMatchesFromDescription(prDescription, OLD_NEW_REGEX));
         // temporary: anything with the old CHANGELOG-FIXES will go in the "Bug Fixes" bucket
@@ -247,7 +251,8 @@ function parseChangelogFromPrDescriptions(prDescriptions) {
         // If there are multiple images, only use the last one since the client can only display one image
         images: changelogImages.length > 0
             ? [changelogImages[changelogImages.length - 1]]
-            : undefined
+            : undefined,
+        oz: changelogOz.length > 0 ? changelogOz : undefined
     };
 }
 
