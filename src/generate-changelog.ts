@@ -21,7 +21,7 @@ export interface Changelog {
   improvements: string[] | undefined
   bugFixes: string[] | undefined
   images: string[] | undefined
-  oz: string[] | undefined
+  oz_updates: string[] | undefined
 }
 
 interface ReleaseInfo {
@@ -99,7 +99,7 @@ export async function generateChangelog(
       improvements: undefined,
       bugFixes: undefined,
       images: undefined,
-      oz: undefined
+      oz_updates: undefined
     }
   }
 
@@ -149,7 +149,7 @@ function chunkArray(originalArray: string[], chunkSize: number): string[][] {
   return arrayChunks
 }
 
-const COMMIT_BATCH_SIZE = 10;
+const COMMIT_BATCH_SIZE = 10
 
 // Fetches PR body text from a series of commits.
 async function fetchPullRequestBodyFromCommits(
@@ -165,8 +165,10 @@ async function fetchPullRequestBodyFromCommits(
     const commitBatch = commitBatches[i]
     const startIndex = i * COMMIT_BATCH_SIZE + 1
     const endIndex = Math.min((i + 1) * COMMIT_BATCH_SIZE, commits.length)
-    core.info(`Downloading commits ${startIndex}-${endIndex} out of ${commits.length} total`)
-    
+    core.info(
+      `Downloading commits ${startIndex}-${endIndex} out of ${commits.length} total`
+    )
+
     let commitsSubQuery = ''
     for (const oid of commitBatch) {
       commitsSubQuery += `
@@ -276,9 +278,7 @@ function parseChangelogFromPrDescriptions(prDescriptions: string[]): Changelog {
     changelogImages.push(
       ...parseMatchesFromDescription(prDescription, IMAGE_REGEX)
     )
-    changelogOz.push(
-      ...parseMatchesFromDescription(prDescription, OZ_REGEX)
-    )
+    changelogOz.push(...parseMatchesFromDescription(prDescription, OZ_REGEX))
 
     // temporary: anything with the old CHANGELOG-NEW will go in the "New Features" bucket
     changelogNewFeatures.push(
@@ -301,6 +301,6 @@ function parseChangelogFromPrDescriptions(prDescriptions: string[]): Changelog {
       changelogImages.length > 0
         ? [changelogImages[changelogImages.length - 1]]
         : undefined,
-    oz: changelogOz.length > 0 ? changelogOz : undefined
+    oz_updates: changelogOz.length > 0 ? changelogOz : undefined
   }
 }

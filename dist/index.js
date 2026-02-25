@@ -98,7 +98,7 @@ function generateChangelog(githubAuthToken, currentVersion, channel) {
                 improvements: undefined,
                 bugFixes: undefined,
                 images: undefined,
-                oz: undefined
+                oz_updates: undefined
             };
         }
         const pullRequestMetadata = yield fetchPullRequestBodyFromCommits(commits, graphqlWithAuth);
@@ -252,7 +252,7 @@ function parseChangelogFromPrDescriptions(prDescriptions) {
         images: changelogImages.length > 0
             ? [changelogImages[changelogImages.length - 1]]
             : undefined,
-        oz: changelogOz.length > 0 ? changelogOz : undefined
+        oz_updates: changelogOz.length > 0 ? changelogOz : undefined
     };
 }
 
