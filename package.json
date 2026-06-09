@@ -30,7 +30,7 @@
     "https": "^1.0.0",
     "octokit": "^4.1.2",
     "shelljs": "^0.8.5",
-    "util": "^0.12.4"
+    "util": "^0.12.5"
   },
   "devDependencies": {
     "@types/node": "^24.9.2",
