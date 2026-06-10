@@ -26,10 +26,10 @@
   "dependencies": {
     "@actions/core": "^2.0.3",
     "@octokit/graphql": "^8.2.1",
-    "@types/shelljs": "^0.8.11",
+    "@types/shelljs": "^0.10.0",
     "https": "^1.0.0",
     "octokit": "^4.1.2",
-    "shelljs": "^0.8.5",
+    "shelljs": "^0.10.0",
     "util": "^0.12.4"
   },
   "devDependencies": {
