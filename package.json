@@ -25,7 +25,7 @@
   "license": "MIT",
   "dependencies": {
     "@actions/core": "^2.0.3",
-    "@octokit/graphql": "^8.2.1",
+    "@octokit/graphql": "^9.0.3",
     "@types/shelljs": "^0.8.11",
     "https": "^1.0.0",
     "octokit": "^4.1.2",
