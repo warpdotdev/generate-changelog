@@ -32,6 +32,9 @@
     "shelljs": "^0.8.5",
     "util": "^0.12.4"
   },
+  "overrides": {
+    "undici": ">=6.27.0"
+  },
   "devDependencies": {
     "@types/node": "^24.9.2",
     "@typescript-eslint/parser": "^5.8.1",
