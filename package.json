@@ -32,6 +32,9 @@
     "shelljs": "^0.8.5",
     "util": "^0.12.4"
   },
+  "overrides": {
+    "js-yaml": "^4.2.0"
+  },
   "devDependencies": {
     "@types/node": "^24.9.2",
     "@typescript-eslint/parser": "^5.8.1",
@@ -41,7 +44,7 @@
     "eslint-plugin-github": "^4.3.7",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-jest": "^25.3.2",
-    "js-yaml": "^4.1.1",
+    "js-yaml": "^4.2.0",
     "prettier": "2.5.1",
     "ts-jest": "^29.4.11",
     "typescript": "^5.0.0"
