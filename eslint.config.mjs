@@ -1,19 +1,15 @@
 import js from '@eslint/js'
-import github from 'eslint-plugin-github'
 import tseslint from 'typescript-eslint'
 import jest from 'eslint-plugin-jest'
-import importPlugin from 'eslint-plugin-import'
+import importX from 'eslint-plugin-import-x'
 import stylistic from '@stylistic/eslint-plugin'
 import globals from 'globals'
-
-const githubFlat = github.getFlatConfigs()
 
 export default [
   {
     ignores: ['dist/', 'lib/', 'node_modules/', 'coverage/', 'jest.config.js'],
   },
   js.configs.recommended,
-  githubFlat.recommended,
   {
     name: 'gc/typescript',
     files: ['src/**/*.ts'],
@@ -33,18 +29,16 @@ export default [
       '@typescript-eslint': tseslint.plugin,
       '@stylistic': stylistic,
       jest,
-      import: importPlugin,
+      'import-x': importX,
     },
     settings: {
-      'import/resolver': {
-        node: {},
-        typescript: {},
+      'import-x/resolver': {
+        typescript: true,
+        node: true,
       },
     },
     rules: {
-      'i18n-text/no-en': 'off',
-      'eslint-comments/no-use': 'off',
-      'import/no-namespace': 'off',
+      'import-x/no-namespace': 'off',
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': 'error',
       '@typescript-eslint/explicit-member-accessibility': ['error', { accessibility: 'no-public' }],
@@ -55,7 +49,7 @@ export default [
       camelcase: 'off',
       '@typescript-eslint/consistent-type-assertions': 'error',
       '@typescript-eslint/explicit-function-return-type': ['error', { allowExpressions: true }],
-      '@stylistic/func-call-spacing': ['error', 'never'],
+      '@stylistic/function-call-spacing': ['error', 'never'],
       '@typescript-eslint/no-array-constructor': 'error',
       '@typescript-eslint/no-empty-interface': 'error',
       '@typescript-eslint/no-explicit-any': 'error',
